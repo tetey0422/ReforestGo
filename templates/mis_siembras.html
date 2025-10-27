@@ -1,0 +1,351 @@
+{% extends 'reforest/base.html' %}
+
+{% block title %}Mis Siembras - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .siembras-header {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .siembras-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-box {
+        background: #f5f5f5;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .stat-box .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .stat-box .label {
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    .filters {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-btn {
+        padding: 0.8rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .filter-btn:hover {
+        border-color: #4CAF50;
+        background: #f0f8f0;
+    }
+    
+    .filter-btn.active {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .siembras-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .siembra-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    
+    .siembra-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .siembra-image {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+    }
+    
+    .siembra-content {
+        padding: 1.5rem;
+    }
+    
+    .siembra-status {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .siembra-status.validada {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .siembra-status.pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .siembra-status.rechazada {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .siembra-info {
+        margin-top: 1rem;
+    }
+    
+    .siembra-info p {
+        margin: 0.5rem 0;
+        color: #666;
+    }
+    
+    .siembra-info strong {
+        color: #333;
+    }
+    
+    .siembra-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .siembra-date {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    .siembra-points {
+        color: #4CAF50;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 3rem;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .pagination a:hover {
+        border-color: #4CAF50;
+        background: #f0f8f0;
+    }
+    
+    .pagination .current {
+        background: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state .emoji {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h2 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state p {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-primary {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+        .siembras-header h1 {
+            font-size: 2rem;
+        }
+        
+        .filters {
+            justify-content: center;
+        }
+        
+        .siembras-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="siembras-header">
+    <h1>🌳 Mis Siembras</h1>
+    <p style="color: #666;">Historial completo de todas tus plantaciones</p>
+    
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="number">{{ stats.total }}</div>
+            <div class="label">Total Registradas</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.validadas }}</div>
+            <div class="label">✅ Validadas</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.pendientes }}</div>
+            <div class="label">⏳ Pendientes</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.rechazadas }}</div>
+            <div class="label">❌ Rechazadas</div>
+        </div>
+    </div>
+</div>
+
+<div class="filters">
+    <span style="color: #666; font-weight: 600;">Filtrar por estado:</span>
+    <a href="?estado=todas" class="filter-btn {% if estado_filter == 'todas' %}active{% endif %}">
+        Todas
+    </a>
+    <a href="?estado=validada" class="filter-btn {% if estado_filter == 'validada' %}active{% endif %}">
+        ✅ Validadas
+    </a>
+    <a href="?estado=pendiente" class="filter-btn {% if estado_filter == 'pendiente' %}active{% endif %}">
+        ⏳ Pendientes
+    </a>
+    <a href="?estado=rechazada" class="filter-btn {% if estado_filter == 'rechazada' %}active{% endif %}">
+        ❌ Rechazadas
+    </a>
+</div>
+
+{% if siembras %}
+<div class="siembras-grid">
+    {% for siembra in siembras %}
+    <div class="siembra-card">
+        <img src="{{ siembra.foto.url }}" alt="Siembra" class="siembra-image">
+        <div class="siembra-content">
+            <span class="siembra-status {{ siembra.estado }}">
+                {% if siembra.estado == 'validada' %}✅ Validada
+                {% elif siembra.estado == 'pendiente' %}⏳ Pendiente
+                {% else %}❌ Rechazada{% endif %}
+            </span>
+            
+            <div class="siembra-info">
+                <p><strong>📍 Ubicación:</strong> {{ siembra.latitud|floatformat:4 }}, {{ siembra.longitud|floatformat:4 }}</p>
+                
+                {% if siembra.especie %}
+                <p><strong>🌿 Especie:</strong> {{ siembra.especie }}</p>
+                {% endif %}
+                
+                {% if siembra.descripcion %}
+                <p><strong>📝 Descripción:</strong> {{ siembra.descripcion|truncatewords:20 }}</p>
+                {% endif %}
+                
+                {% if siembra.estado == 'rechazada' and siembra.notas_admin %}
+                <p style="color: #dc3545;"><strong>Nota del admin:</strong> {{ siembra.notas_admin }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="siembra-meta">
+                <span class="siembra-date">{{ siembra.fecha_siembra|date:"d/m/Y H:i" }}</span>
+                {% if siembra.estado == 'validada' %}
+                <span class="siembra-points">+{{ siembra.puntos_otorgados }} pts</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Paginación -->
+{% if siembras.has_other_pages %}
+<div class="pagination">
+    {% if siembras.has_previous %}
+    <a href="?page={{ siembras.previous_page_number }}&estado={{ estado_filter }}">← Anterior</a>
+    {% endif %}
+    
+    <span class="current">Página {{ siembras.number }} de {{ siembras.paginator.num_pages }}</span>
+    
+    {% if siembras.has_next %}
+    <a href="?page={{ siembras.next_page_number }}&estado={{ estado_filter }}">Siguiente →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="emoji">🌱</div>
+    <h2>No se encontraron siembras</h2>
+    <p>{% if estado_filter != 'todas' %}No tienes siembras con el estado "{{ estado_filter }}".{% else %}Aún no has registrado ninguna siembra.{% endif %}</p>
+    <a href="/registrar-siembra/" class="btn-primary">📸 Registrar Primera Siembra</a>
+</div>
+{% endif %}
+{% endblock %}

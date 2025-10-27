@@ -1,0 +1,263 @@
+{% extends 'reforest/base.html' %}
+
+{% block title %}Mapa Interactivo - Reforest Go{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block extra_style %}
+<style>
+    .mapa-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .mapa-header {
+        margin-bottom: 2rem;
+    }
+    
+    .mapa-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .mapa-header p {
+        color: #666;
+    }
+    
+    .legend {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 10px;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .legend-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+    }
+    
+    .legend-icon.vivero {
+        background: #4CAF50;
+    }
+    
+    .legend-icon.zona {
+        background: #2196F3;
+    }
+    
+    #map {
+        width: 100%;
+        height: 600px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .leaflet-popup-content {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .popup-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .popup-info {
+        margin: 0.3rem 0;
+        color: #666;
+    }
+    
+    .popup-info strong {
+        color: #333;
+    }
+    
+    .info-boxes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .info-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .info-box h3 {
+        color: #4CAF50;
+        margin-bottom: 1rem;
+    }
+    
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .info-box li {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-box li:last-child {
+        border-bottom: none;
+    }
+    
+    @media (max-width: 768px) {
+        .mapa-header h1 {
+            font-size: 2rem;
+        }
+        
+        #map {
+            height: 400px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mapa-container">
+    <div class="mapa-header">
+        <h1>🗺️ Mapa Interactivo</h1>
+        <p>Explora viveros cercanos y zonas recomendadas para siembra</p>
+    </div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-icon vivero"></div>
+            <span>🌱 Viveros ({{ viveros|length }})</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-icon zona"></div>
+            <span>🎯 Zonas de Siembra ({{ zonas|length }})</span>
+        </div>
+    </div>
+    
+    <div id="map"></div>
+</div>
+
+<div class="info-boxes">
+    <div class="info-box">
+        <h3>💡 Consejos para Plantar</h3>
+        <ul>
+            <li>🌤️ Planta en época de lluvias</li>
+            <li>💧 Riega regularmente los primeros meses</li>
+            <li>🌱 Elige especies nativas de tu región</li>
+            <li>📏 Deja espacio suficiente entre árboles</li>
+            <li>🛡️ Protege las plántulas de animales</li>
+        </ul>
+    </div>
+    
+    <div class="info-box">
+        <h3>🌳 Especies Recomendadas</h3>
+        <ul>
+            <li>Ceiba - Árbol emblemático</li>
+            <li>Guayacán - Floración amarilla</li>
+            <li>Roble - Madera resistente</li>
+            <li>Samán - Sombra abundante</li>
+            <li>Caracolí - Nativo y decorativo</li>
+        </ul>
+    </div>
+    
+    <div class="info-box">
+        <h3>📞 ¿Necesitas Ayuda?</h3>
+        <ul>
+            <li>📧 Contáctanos: contacto@reforestgo.com</li>
+            <li>🌐 Visita nuestro sitio web</li>
+            <li>📱 Síguenos en redes sociales</li>
+            <li>💬 Únete a nuestra comunidad</li>
+            <li>📚 Consulta nuestras guías</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Datos de viveros y zonas desde Django
+    const viverosData = {{ viveros|safe }};
+    const zonasData = {{ zonas|safe }};
+    
+    // Inicializar mapa centrado en Barrancabermeja, Colombia
+    const map = L.map('map').setView([7.0653, -73.8534], 13);
+    
+    // Añadir capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+    
+    // Iconos personalizados
+    const viveroIcon = L.divIcon({
+        className: 'custom-icon',
+        html: '<div style="background: #4CAF50; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🌱</div>',
+        iconSize: [30, 30]
+    });
+    
+    const zonaIcon = L.divIcon({
+        className: 'custom-icon',
+        html: '<div style="background: #2196F3; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯</div>',
+        iconSize: [30, 30]
+    });
+    
+    // Añadir marcadores de viveros
+    viverosData.forEach(vivero => {
+        const marker = L.marker([vivero.lat, vivero.lng], { icon: viveroIcon }).addTo(map);
+        
+        const popupContent = `
+            <div class="popup-title">🌱 ${vivero.nombre}</div>
+            <div class="popup-info"><strong>📍 Dirección:</strong> ${vivero.direccion}</div>
+            ${vivero.telefono ? `<div class="popup-info"><strong>📞 Teléfono:</strong> ${vivero.telefono}</div>` : ''}
+            ${vivero.horario ? `<div class="popup-info"><strong>🕒 Horario:</strong> ${vivero.horario}</div>` : ''}
+            <div class="popup-info"><strong>🌿 Especies:</strong> ${vivero.especies}</div>
+            ${vivero.destacado ? '<div style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">⭐ Vivero Destacado</div>' : ''}
+        `;
+        
+        marker.bindPopup(popupContent);
+    });
+    
+    // Añadir marcadores de zonas
+    zonasData.forEach(zona => {
+        const marker = L.marker([zona.lat, zona.lng], { icon: zonaIcon }).addTo(map);
+        
+        const popupContent = `
+            <div class="popup-title">🎯 ${zona.nombre}</div>
+            <div class="popup-info"><strong>🏞️ Tipo:</strong> ${zona.tipo}</div>
+            <div class="popup-info"><strong>📝 Descripción:</strong> ${zona.descripcion}</div>
+            <div class="popup-info"><strong>💡 Recomendaciones:</strong> ${zona.recomendaciones}</div>
+        `;
+        
+        marker.bindPopup(popupContent);
+    });
+    
+    // Ajustar zoom para mostrar todos los marcadores
+    if (viverosData.length > 0 || zonasData.length > 0) {
+        const allMarkers = [];
+        viverosData.forEach(v => allMarkers.push([v.lat, v.lng]));
+        zonasData.forEach(z => allMarkers.push([z.lat, z.lng]));
+        
+        if (allMarkers.length > 0) {
+            const bounds = L.latLngBounds(allMarkers);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+    }
+</script>
+{% endblock %}

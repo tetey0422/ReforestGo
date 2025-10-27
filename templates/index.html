@@ -1,0 +1,316 @@
+{% extends 'reforest/base.html' %}
+
+{% block title %}Reforest Go - Planta, Suma y Transforma el Planeta{% endblock %}
+
+{% block extra_style %}
+<style>
+    .hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 4rem 2rem;
+        position: relative;
+        overflow: hidden;
+        margin: -2rem -1rem 2rem -1rem;
+    }
+    
+    .hero::before {
+        content: "🌱🌿🌳🌲🌴🌵";
+        position: absolute;
+        font-size: 8rem;
+        opacity: 0.1;
+        animation: float 20s infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-30px); }
+    }
+    
+    .hero-content {
+        max-width: 800px;
+        z-index: 1;
+    }
+    
+    .hero h1 {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        animation: fadeInUp 1s;
+    }
+    
+    .hero p {
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+        animation: fadeInUp 1s 0.2s backwards;
+    }
+    
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        animation: fadeInUp 1s 0.4s backwards;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: transform 0.3s;
+        display: inline-block;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #667eea;
+    }
+    
+    .btn:hover {
+        transform: translateY(-3px);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .features {
+        padding: 5rem 0;
+    }
+    
+    .features-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+    
+    .features h2 {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+        color: #333;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .feature-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card h3 {
+        color: #4CAF50;
+        margin-bottom: 1rem;
+    }
+    
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    .stats {
+        padding: 5rem 2rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        margin: 4rem -1rem;
+    }
+    
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    
+    .stats h2 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+    }
+    
+    .stat-card {
+        padding: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .cta {
+        padding: 5rem 2rem;
+        text-align: center;
+    }
+    
+    .cta h2 {
+        font-size: 2.5rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .cta p {
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.5rem;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+        }
+        
+        .hero {
+            min-height: 60vh;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>🌱 Reforest Go</h1>
+        <p>Planta, suma y transforma el planeta</p>
+        <div class="hero-buttons">
+            {% if user.is_authenticated %}
+                <a href="/perfil/" class="btn btn-primary">Ver Mi Perfil</a>
+                <a href="/mapa/" class="btn btn-secondary">Explorar Mapa</a>
+            {% else %}
+                <a href="/registro/" class="btn btn-primary">Comenzar Ahora</a>
+                <a href="/login/" class="btn btn-secondary">Iniciar Sesión</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="features-container">
+        <h2>¿Cómo Funciona?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📸</div>
+                <h3>Planta un Árbol</h3>
+                <p>Registra tus siembras con una foto y ubicación GPS automática.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Gana Puntos</h3>
+                <p>Cada árbol validado te otorga 20 puntos ecológicos para subir de nivel.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Explora el Mapa</h3>
+                <p>Encuentra viveros cercanos y zonas recomendadas para plantar.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3>Sube de Nivel</h3>
+                <p>Desbloquea avatares especiales y compite en el ranking global.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🌎</div>
+                <h3>Impacto Real</h3>
+                <p>Contribuye a la reforestación y lucha contra el cambio climático.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Comunidad</h3>
+                <p>Únete a una comunidad apasionada por el medio ambiente.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats">
+    <div class="stats-container">
+        <h2>Nuestro Impacto</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_siembras|default:0 }}</div>
+                <div class="stat-label">Árboles Plantados</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ total_usuarios|default:0 }}</div>
+                <div class="stat-label">Reforestadores Activos</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ viveros_destacados|length|default:0 }}</div>
+                <div class="stat-label">Viveros Aliados</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <h2>¿Listo para Hacer la Diferencia?</h2>
+    <p>Únete a la revolución verde y comienza a plantar árboles hoy mismo</p>
+    {% if not user.is_authenticated %}
+    <a href="/registro/" class="btn btn-primary">🌱 Crear Cuenta Gratis</a>
+    {% endif %}
+</section>
+{% endblock %}
