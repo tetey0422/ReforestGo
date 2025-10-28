@@ -189,6 +189,8 @@ def cambiar_avatar(request, avatar_id):
 
 def mapa(request):
     """Mapa interactivo con viveros y zonas de siembra"""
+    import json
+    
     viveros = Vivero.objects.all()
     zonas = Zona.objects.filter(activa=True)
     
@@ -220,28 +222,33 @@ def mapa(request):
     ]
     
     context = {
-        'viveros': viveros_data,
-        'zonas': zonas_data,
+        'viveros': json.dumps(viveros_data),
+        'zonas': json.dumps(zonas_data),
     }
     return render(request, 'mapa.html', context)
 
 
 def ranking(request):
     """Ranking de usuarios por puntos"""
-    # Top 50 usuarios con optimización de queries
-    perfiles = Perfil.objects.select_related('user', 'avatar_actual').order_by('-puntos')[:50]
+    # Top 50 usuarios con optimización de queries - EXCLUYENDO STAFF/ADMIN
+    perfiles = Perfil.objects.select_related('user', 'avatar_actual')\
+        .filter(user__is_staff=False, user__is_superuser=False)\
+        .order_by('-puntos')[:50]
     
     # Añadir posición en el ranking y siembras validadas
     for index, perfil in enumerate(perfiles, start=1):
         perfil.posicion = index
         perfil.siembras_validadas = perfil.user.siembras.filter(estado='validada').count()
     
-    # Posición del usuario actual si está autenticado
+    # Posición del usuario actual si está autenticado Y NO ES ADMIN
     usuario_posicion = None
-    if request.user.is_authenticated:
+    if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser:
         try:
+            # Contar usuarios NO ADMIN por encima del actual
             usuarios_por_encima = Perfil.objects.filter(
-                puntos__gt=request.user.perfil.puntos
+                puntos__gt=request.user.perfil.puntos,
+                user__is_staff=False,
+                user__is_superuser=False
             ).count()
             usuario_posicion = usuarios_por_encima + 1
         except:

@@ -186,14 +186,18 @@ class Siembra(models.Model):
                 pass
     
     def validar(self, admin_user):
-        """Valida la siembra y otorga puntos al usuario"""
+        """Valida la siembra y otorga puntos al usuario (excepto si es admin)"""
         from django.utils import timezone
         self.estado = 'validada'
         self.validada_por = admin_user
         self.fecha_validacion = timezone.now()
         self.save()
         
-        # Otorgar puntos al usuario
+        # NO otorgar puntos si el usuario es staff o superuser
+        if self.usuario.is_staff or self.usuario.is_superuser:
+            return False
+        
+        # Otorgar puntos solo a usuarios normales
         perfil = self.usuario.perfil
         subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
         

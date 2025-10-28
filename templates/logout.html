@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Sesión Cerrada - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .logout-container {
+        max-width: 500px;
+        margin: 4rem auto;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .logout-icon {
+        font-size: 5rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .logout-container h1 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .logout-container p {
+        color: #666;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .buttons-container {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s;
+        display: inline-block;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+    
+    .btn-secondary:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-3px);
+    }
+    
+    .info-box {
+        background: #e8f5e9;
+        border-left: 4px solid #4CAF50;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-radius: 10px;
+        text-align: left;
+    }
+    
+    .info-box h3 {
+        color: #2e7d32;
+        margin-bottom: 0.8rem;
+        font-size: 1.1rem;
+    }
+    
+    .info-box ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-box li {
+        padding: 0.5rem 0;
+        color: #1b5e20;
+    }
+    
+    .info-box li::before {
+        content: "✓ ";
+        color: #4CAF50;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .logout-container {
+            margin: 2rem 1rem;
+            padding: 2rem 1.5rem;
+        }
+        
+        .logout-container h1 {
+            font-size: 1.5rem;
+        }
+        
+        .buttons-container {
+            flex-direction: column;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="logout-container">
+    <div class="logout-icon">👋</div>
+    
+    <h1>¡Has cerrado sesión exitosamente!</h1>
+    
+    <p>
+        Gracias por usar Reforest Go. Tu contribución al planeta es invaluable. 
+        ¡Esperamos verte pronto para plantar más árboles! 🌱
+    </p>
+    
+    <div class="buttons-container">
+        <a href="{% url 'reforest:login' %}" class="btn btn-primary">
+            🔐 Iniciar Sesión
+        </a>
+        <a href="{% url 'reforest:index' %}" class="btn btn-secondary">
+            🏠 Ir al Inicio
+        </a>
+    </div>
+    
+    <div class="info-box">
+        <h3>💡 ¿Sabías que?</h3>
+        <ul>
+            <li>Cada árbol plantado absorbe hasta 22 kg de CO₂ al año</li>
+            <li>Un solo árbol produce oxígeno para 2 personas</li>
+            <li>Los bosques urbanos reducen la temperatura hasta 5°C</li>
+            <li>Plantar árboles ayuda a proteger la biodiversidad</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

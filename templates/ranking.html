@@ -168,10 +168,15 @@
     <p>Top 50 reforestadores con más impacto ambiental</p>
 </div>
 
-{% if user.is_authenticated and usuario_posicion %}
+{% if user.is_authenticated and usuario_posicion and not user.is_staff %}
 <div class="user-position-card">
     <h2>#{{ usuario_posicion }}</h2>
     <p>Tu posición actual en el ranking</p>
+</div>
+{% elif user.is_authenticated and user.is_staff %}
+<div class="user-position-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <h2>⚙️ Administrador</h2>
+    <p>Los administradores no participan en el ranking</p>
 </div>
 {% endif %}
 
