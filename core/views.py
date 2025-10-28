@@ -18,14 +18,14 @@ def index(request):
     # Obtener estadísticas globales
     total_siembras = Siembra.objects.filter(estado='validada').count()
     total_usuarios = User.objects.filter(is_active=True).count()
-    viveros_destacados = Vivero.objects.filter(destacado=True)
+    viveros_destacados = Vivero.objects.filter(destacado=True)[:3]
     
     context = {
         'total_siembras': total_siembras,
         'total_usuarios': total_usuarios,
         'viveros_destacados': viveros_destacados,
     }
-    return render(request, 'reforest/index.html', context)
+    return render(request, 'index.html', context)
 
 
 def registro(request):
@@ -39,14 +39,14 @@ def registro(request):
             user = form.save()
             # El perfil se crea automáticamente por la señal post_save
             login(request, user)
-            messages.success(request, f'¡Bienvenido {user.username}! Tu cuenta ha sido creada exitosamente.')
+            messages.success(request, f'¡Bienvenido {user.username}! Tu cuenta ha sido creada exitosamente. 🌱')
             return redirect('reforest:perfil')
         else:
             messages.error(request, 'Por favor corrige los errores en el formulario.')
     else:
         form = UserCreationForm()
     
-    return render(request, 'reforest/registro.html', {'form': form})
+    return render(request, 'registro.html', {'form': form})
 
 
 @login_required
@@ -65,12 +65,17 @@ def perfil(request):
     avatares_disponibles = Avatar.objects.filter(nivel_requerido__lte=perfil.nivel)
     
     # Calcular progreso hacia el siguiente nivel
-    progreso = perfil.progreso_siguiente_nivel()
+    try:
+        progreso = perfil.progreso_siguiente_nivel()
+        if progreso is None:
+            progreso = 0
+    except Exception:
+        progreso = 0
 
     # Calcular puntos faltantes hacia el siguiente nivel
-    # Definir objetivos por nivel
     niveles_objetivo = {1: 100, 2: 250, 3: 500, 4: 1000}
-    siguiente_objetivo = niveles_objetivo.get(perfil.nivel)
+    siguiente_objetivo = niveles_objetivo.get(perfil.nivel, 0)
+    
     if siguiente_objetivo:
         faltan = max(0, siguiente_objetivo - perfil.puntos)
     else:
@@ -85,7 +90,7 @@ def perfil(request):
         'progreso': progreso,
         'faltan': faltan,
     }
-    return render(request, 'reforest/perfil.html', context)
+    return render(request, 'perfil.html', context)
 
 
 @login_required
@@ -118,7 +123,7 @@ def mis_siembras(request):
         'estado_filter': estado_filter,
         'stats': stats,
     }
-    return render(request, 'reforest/mis_siembras.html', context)
+    return render(request, 'mis_siembras.html', context)
 
 
 @login_required
@@ -135,11 +140,11 @@ def registrar_siembra(request):
         # Validaciones
         if not foto:
             messages.error(request, 'Debes subir una foto del árbol plantado.')
-            return render(request, 'reforest/registrar_siembra.html')
+            return render(request, 'registrar_siembra.html')
         
         if not latitud or not longitud:
             messages.error(request, 'No se pudo obtener tu ubicación GPS.')
-            return render(request, 'reforest/registrar_siembra.html')
+            return render(request, 'registrar_siembra.html')
         
         try:
             # Crear la siembra
@@ -154,15 +159,15 @@ def registrar_siembra(request):
             
             messages.success(
                 request,
-                '¡Siembra registrada exitosamente! Está pendiente de validación por un administrador.'
+                '¡Siembra registrada exitosamente! 🌱 Está pendiente de validación por un administrador.'
             )
             return redirect('reforest:perfil')
             
         except Exception as e:
             messages.error(request, f'Error al registrar la siembra: {str(e)}')
-            return render(request, 'reforest/registrar_siembra.html')
+            return render(request, 'registrar_siembra.html')
     
-    return render(request, 'reforest/registrar_siembra.html')
+    return render(request, 'registrar_siembra.html')
 
 
 @login_required
@@ -218,15 +223,15 @@ def mapa(request):
         'viveros': viveros_data,
         'zonas': zonas_data,
     }
-    return render(request, 'reforest/mapa.html', context)
+    return render(request, 'mapa.html', context)
 
 
 def ranking(request):
     """Ranking de usuarios por puntos"""
-    # Top 50 usuarios
+    # Top 50 usuarios con optimización de queries
     perfiles = Perfil.objects.select_related('user', 'avatar_actual').order_by('-puntos')[:50]
     
-    # Añadir posición en el ranking
+    # Añadir posición en el ranking y siembras validadas
     for index, perfil in enumerate(perfiles, start=1):
         perfil.posicion = index
         perfil.siembras_validadas = perfil.user.siembras.filter(estado='validada').count()
@@ -246,7 +251,7 @@ def ranking(request):
         'perfiles': perfiles,
         'usuario_posicion': usuario_posicion,
     }
-    return render(request, 'reforest/ranking.html', context)
+    return render(request, 'ranking.html', context)
 
 
 # =========================

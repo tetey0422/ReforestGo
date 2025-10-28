@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .registro-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    
+    .registro-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .registro-header .emoji {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .registro-header h1 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .registro-header p {
+        color: #666;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    .form-errors {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .form-errors ul {
+        margin: 0;
+        padding-left: 1.2rem;
+    }
+    
+    .help-text {
+        font-size: 0.85rem;
+        color: #999;
+        margin-top: 0.3rem;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+        margin-top: 1rem;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        color: #666;
+    }
+    
+    .login-link a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196F3;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 5px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="registro-container">
+    <div class="registro-header">
+        <div class="emoji">🌱</div>
+        <h1>Crear Cuenta</h1>
+        <p>Únete a la revolución verde</p>
+    </div>
+    
+    <div class="info-box">
+        <strong>💡 ¿Qué obtienes?</strong><br>
+        • Gana puntos por cada árbol plantado<br>
+        • Desbloquea avatares especiales<br>
+        • Compite en el ranking global<br>
+        • Encuentra viveros cercanos
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}">Nombre de usuario</label>
+            {{ form.username }}
+            <div class="help-text">Requerido. 150 caracteres o menos. Letras, dígitos y @/./+/-/_ solamente.</div>
+            {% if form.username.errors %}
+            <div class="form-errors">
+                <ul>
+                    {% for error in form.username.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}">Contraseña</label>
+            {{ form.password1 }}
+            <div class="help-text">
+                • Mínimo 8 caracteres<br>
+                • No puede ser similar a tu información personal<br>
+                • No puede ser una contraseña común
+            </div>
+            {% if form.password1.errors %}
+            <div class="form-errors">
+                <ul>
+                    {% for error in form.password1.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}">Confirmar contraseña</label>
+            {{ form.password2 }}
+            <div class="help-text">Ingresa la misma contraseña nuevamente.</div>
+            {% if form.password2.errors %}
+            <div class="form-errors">
+                <ul>
+                    {% for error in form.password2.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        
+        <button type="submit" class="submit-btn">
+            🌿 Crear Cuenta
+        </button>
+    </form>
+    
+    <div class="login-link">
+        ¿Ya tienes cuenta? 
+        <a href="{% url 'reforest:login' %}">Inicia sesión aquí</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'reforest/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Mi Perfil - Reforest Go{% endblock %}
 
@@ -214,7 +214,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Encabezado del Perfil -->
 <div class="profile-header">
     <div class="avatar-display">
         {{ perfil.avatar_actual.emoji }}
@@ -234,7 +233,7 @@
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ total_siembras }}</div>
-                <div class="stat-label">Árboles Plantados</div>
+                <div class="stat-label">Arboles Plantados</div>
             </div>
             <div class="stat-card">
                 <div class="stat-number">{{ siembras_pendientes }}</div>
@@ -244,33 +243,31 @@
     </div>
     
     <div>
-        <a href="/siembras/" class="btn">Ver Todas mis Siembras</a>
+        <a href="{% url 'reforest:mis_siembras' %}" class="btn">Ver Todas mis Siembras</a>
     </div>
 </div>
 
-<!-- Progreso hacia Siguiente Nivel -->
 {% if perfil.nivel < 5 %}
 <div class="progress-section">
-    <h3>📊 Progreso hacia el Nivel {{ perfil.nivel|add:1 }}</h3>
+    <h3>Progreso hacia el Nivel {{ perfil.nivel|add:1 }}</h3>
     <div class="progress-bar-container">
-        <div class="progress-bar" style="width: {{ progreso }}%">
-            {{ progreso|floatformat:0 }}%
+        <div class="progress-bar" style="width: {{ progreso|default:0 }}%">
+            {{ progreso|default:0|floatformat:0 }}%
         </div>
     </div>
     <p style="margin-top: 1rem; color: #666;">
-        Necesitas {{ faltan }} puntos más para alcanzar el Nivel {{ perfil.nivel|add:1 }}
+        Necesitas {{ faltan|default:0 }} puntos mas para alcanzar el Nivel {{ perfil.nivel|add:1 }}
     </p>
 </div>
 {% endif %}
 
-<!-- Avatares Desbloqueables -->
 <div class="avatars-section">
-    <h3>🎨 Avatares</h3>
-    <p style="color: #666; margin-bottom: 1rem;">Selecciona tu avatar favorito (desbloquea más subiendo de nivel)</p>
+    <h3>Avatares</h3>
+    <p style="color: #666; margin-bottom: 1rem;">Selecciona tu avatar favorito (desbloquea mas subiendo de nivel)</p>
     
     <div class="avatars-grid">
         {% for avatar in avatares_disponibles %}
-        <a href="/cambiar-avatar/{{ avatar.id }}/" class="avatar-card {% if avatar.id == perfil.avatar_actual.id %}active{% endif %}">
+        <a href="{% url 'reforest:cambiar_avatar' avatar.id %}" class="avatar-card {% if avatar.id == perfil.avatar_actual.id %}active{% endif %}">
             <div class="emoji">{{ avatar.emoji }}</div>
             <div class="name">{{ avatar.nombre }}</div>
             <div class="level">Nivel {{ avatar.nivel_requerido }}</div>
@@ -279,9 +276,8 @@
     </div>
 </div>
 
-<!-- Últimas Siembras -->
 <div class="siembras-section">
-    <h3>🌳 Últimas Siembras</h3>
+    <h3>Ultimas Siembras</h3>
     
     {% if siembras %}
     <div class="siembras-grid">
@@ -290,9 +286,9 @@
             <img src="{{ siembra.foto.url }}" alt="Siembra" class="siembra-image">
             <div class="siembra-info">
                 <span class="siembra-status {{ siembra.estado }}">
-                    {% if siembra.estado == 'validada' %}✅ Validada
-                    {% elif siembra.estado == 'pendiente' %}⏳ Pendiente
-                    {% else %}❌ Rechazada{% endif %}
+                    {% if siembra.estado == 'validada' %}Validada
+                    {% elif siembra.estado == 'pendiente' %}Pendiente
+                    {% else %}Rechazada{% endif %}
                 </span>
                 <p style="margin-top: 0.5rem; color: #666;">
                     <strong>Especie:</strong> {{ siembra.especie|default:"No especificada" }}
@@ -312,9 +308,9 @@
     {% else %}
     <div class="empty-state">
         <div class="emoji">🌱</div>
-        <h3>Aún no has registrado siembras</h3>
-        <p>¡Es momento de plantar tu primer árbol!</p>
-        <a href="/registrar-siembra/" class="btn" style="margin-top: 1rem;">📸 Registrar Primera Siembra</a>
+        <h3>Aun no has registrado siembras</h3>
+        <p>Es momento de plantar tu primer arbol!</p>
+        <a href="{% url 'reforest:registrar_siembra' %}" class="btn" style="margin-top: 1rem;">Registrar Primera Siembra</a>
     </div>
     {% endif %}
 </div>

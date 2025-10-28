@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from PIL import Image
+import os
 
 class Avatar(models.Model):
     """Avatares desbloqueables según nivel"""
@@ -30,6 +31,10 @@ class Perfil(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     bio = models.TextField(max_length=500, blank=True)
     foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    
+    class Meta:
+        verbose_name = 'Perfil'
+        verbose_name_plural = 'Perfiles'
     
     def __str__(self):
         return f"{self.user.username} - Nivel {self.nivel} ({self.puntos} pts)"
@@ -63,12 +68,23 @@ class Perfil(models.Model):
     def progreso_siguiente_nivel(self):
         """Calcula el progreso hacia el siguiente nivel"""
         niveles = {1: 100, 2: 250, 3: 500, 4: 1000, 5: float('inf')}
+        
+        # Si ya está en el nivel máximo
         if self.nivel >= 5:
-            return 100
-        puntos_necesarios = niveles[self.nivel]
-        puntos_nivel_anterior = niveles.get(self.nivel - 1, 0)
-        progreso = ((self.puntos - puntos_nivel_anterior) / (puntos_necesarios - puntos_nivel_anterior)) * 100
-        return min(progreso, 100)
+            return 100.0
+        
+        try:
+            puntos_necesarios = niveles[self.nivel]
+            puntos_nivel_anterior = niveles.get(self.nivel - 1, 0)
+            
+            # Evitar división por cero
+            if puntos_necesarios == puntos_nivel_anterior:
+                return 100.0
+            
+            progreso = ((self.puntos - puntos_nivel_anterior) / (puntos_necesarios - puntos_nivel_anterior)) * 100
+            return max(0.0, min(progreso, 100.0))  # Asegurar que esté entre 0 y 100
+        except Exception:
+            return 0.0
 
 
 class Vivero(models.Model):
@@ -147,6 +163,28 @@ class Siembra(models.Model):
     def __str__(self):
         return f"Siembra de {self.usuario.username} - {self.fecha_siembra.strftime('%d/%m/%Y')}"
     
+    def save(self, *args, **kwargs):
+        """Optimizar imagen antes de guardar"""
+        super().save(*args, **kwargs)
+        
+        if self.foto:
+            try:
+                img = Image.open(self.foto.path)
+                
+                # Convertir RGBA a RGB si es necesario
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                    rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                    img = rgb_img
+                
+                # Redimensionar si es muy grande
+                if img.height > 1200 or img.width > 1200:
+                    img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+                    img.save(self.foto.path, quality=85, optimize=True)
+            except Exception as e:
+                # Si hay error al procesar la imagen, continuar sin optimizar
+                pass
+    
     def validar(self, admin_user):
         """Valida la siembra y otorga puntos al usuario"""
         from django.utils import timezone
@@ -162,17 +200,15 @@ class Siembra(models.Model):
         return subio_nivel
 
 
-# Señales para crear perfil automáticamente
+# Señal para crear perfil automáticamente
 @receiver(post_save, sender=User)
 def crear_perfil_usuario(sender, instance, created, **kwargs):
     """Crea automáticamente un perfil cuando se registra un usuario"""
     if created:
         avatar_inicial = Avatar.objects.filter(nivel_requerido=1).first()
         Perfil.objects.create(user=instance, avatar_actual=avatar_inicial)
-
-
-@receiver(post_save, sender=User)
-def guardar_perfil_usuario(sender, instance, **kwargs):
-    """Guarda el perfil cuando se guarda el usuario"""
-    if hasattr(instance, 'perfil'):
-        instance.perfil.save()
+    else:
+        # Asegurar que el perfil existe
+        if not hasattr(instance, 'perfil'):
+            avatar_inicial = Avatar.objects.filter(nivel_requerido=1).first()
+            Perfil.objects.create(user=instance, avatar_actual=avatar_inicial)

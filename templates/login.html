@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 3rem auto;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+    
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .login-header .emoji {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+    
+    .login-header h1 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .login-header p {
+        color: #666;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    .form-errors {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .form-errors ul {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .register-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e0e0e0;
+        color: #666;
+    }
+    
+    .register-link a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    
+    .register-link a:hover {
+        text-decoration: underline;
+    }
+    
+    .help-text {
+        font-size: 0.85rem;
+        color: #999;
+        margin-top: 0.3rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <div class="emoji">🌱</div>
+        <h1>Iniciar Sesión</h1>
+        <p>Bienvenido de vuelta a Reforest Go</p>
+    </div>
+    
+    {% if form.errors %}
+    <div class="form-errors">
+        <strong>❌ Error al iniciar sesión:</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_username">Usuario</label>
+            <input type="text" 
+                   name="username" 
+                   id="id_username" 
+                   placeholder="Tu nombre de usuario"
+                   required 
+                   autofocus>
+        </div>
+        
+        <div class="form-group">
+            <label for="id_password">Contraseña</label>
+            <input type="password" 
+                   name="password" 
+                   id="id_password" 
+                   placeholder="Tu contraseña"
+                   required>
+        </div>
+        
+        <input type="hidden" name="next" value="{{ next }}">
+        
+        <button type="submit" class="submit-btn">
+            🌿 Iniciar Sesión
+        </button>
+    </form>
+    
+    <div class="register-link">
+        ¿No tienes cuenta? 
+        <a href="{% url 'reforest:registro' %}">Regístrate aquí</a>
+    </div>
+</div>
+{% endblock %}

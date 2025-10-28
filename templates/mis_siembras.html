@@ -1,4 +1,4 @@
-{% extends 'reforest/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Mis Siembras - Reforest Go{% endblock %}
 
@@ -345,7 +345,7 @@
     <div class="emoji">🌱</div>
     <h2>No se encontraron siembras</h2>
     <p>{% if estado_filter != 'todas' %}No tienes siembras con el estado "{{ estado_filter }}".{% else %}Aún no has registrado ninguna siembra.{% endif %}</p>
-    <a href="/registrar-siembra/" class="btn-primary">📸 Registrar Primera Siembra</a>
+    <a href="{% url 'reforest:registrar_siembra' %}" class="btn-primary">📸 Registrar Primera Siembra</a>
 </div>
 {% endif %}
 {% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'reforest/base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Reforest Go - Planta, Suma y Transforma el Planeta{% endblock %}
 
@@ -221,24 +221,22 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
         <h1>🌱 Reforest Go</h1>
         <p>Planta, suma y transforma el planeta</p>
         <div class="hero-buttons">
             {% if user.is_authenticated %}
-                <a href="/perfil/" class="btn btn-primary">Ver Mi Perfil</a>
-                <a href="/mapa/" class="btn btn-secondary">Explorar Mapa</a>
+                <a href="{% url 'reforest:perfil' %}" class="btn btn-primary">Ver Mi Perfil</a>
+                <a href="{% url 'reforest:mapa' %}" class="btn btn-secondary">Explorar Mapa</a>
             {% else %}
-                <a href="/registro/" class="btn btn-primary">Comenzar Ahora</a>
-                <a href="/login/" class="btn btn-secondary">Iniciar Sesión</a>
+                <a href="{% url 'reforest:registro' %}" class="btn btn-primary">Comenzar Ahora</a>
+                <a href="{% url 'reforest:login' %}" class="btn btn-secondary">Iniciar Sesión</a>
             {% endif %}
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
 <section class="features">
     <div class="features-container">
         <h2>¿Cómo Funciona?</h2>
@@ -282,7 +280,6 @@
     </div>
 </section>
 
-<!-- Stats Section -->
 <section class="stats">
     <div class="stats-container">
         <h2>Nuestro Impacto</h2>
@@ -305,12 +302,11 @@
     </div>
 </section>
 
-<!-- CTA Section -->
 <section class="cta">
     <h2>¿Listo para Hacer la Diferencia?</h2>
     <p>Únete a la revolución verde y comienza a plantar árboles hoy mismo</p>
     {% if not user.is_authenticated %}
-    <a href="/registro/" class="btn btn-primary">🌱 Crear Cuenta Gratis</a>
+    <a href="{% url 'reforest:registro' %}" class="btn btn-primary">🌱 Crear Cuenta Gratis</a>
     {% endif %}
 </section>
 {% endblock %}
