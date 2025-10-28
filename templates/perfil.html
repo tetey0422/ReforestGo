@@ -8,30 +8,30 @@
         background: white;
         border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         margin-bottom: 2rem;
         display: grid;
         grid-template-columns: auto 1fr auto;
         gap: 2rem;
         align-items: center;
     }
-    
+
     .avatar-display {
         font-size: 5rem;
         text-align: center;
     }
-    
+
     .profile-info h2 {
         font-size: 2rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .profile-info .username {
         color: #666;
         font-size: 1.1rem;
         margin-bottom: 1rem;
     }
-    
+
     .level-badge {
         display: inline-block;
         background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -40,40 +40,42 @@
         border-radius: 25px;
         font-weight: 600;
     }
-    
+
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
         margin-top: 1rem;
     }
-    
+
     .stat-card {
         text-align: center;
         padding: 1rem;
         background: #f5f5f5;
         border-radius: 15px;
     }
-    
+
     .stat-number {
         font-size: 2rem;
         font-weight: bold;
         color: #4CAF50;
     }
-    
+
     .stat-label {
         color: #666;
         margin-top: 0.5rem;
     }
-    
-    .progress-section, .avatars-section, .siembras-section {
+
+    .progress-section,
+    .avatars-section,
+    .siembras-section {
         background: white;
         border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         margin-bottom: 2rem;
     }
-    
+
     .progress-bar-container {
         background: #e0e0e0;
         border-radius: 25px;
@@ -81,7 +83,7 @@
         overflow: hidden;
         margin-top: 1rem;
     }
-    
+
     .progress-bar {
         height: 100%;
         background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
@@ -93,14 +95,14 @@
         font-weight: 600;
         transition: width 1s ease;
     }
-    
+
     .avatars-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 1rem;
         margin-top: 1.5rem;
     }
-    
+
     .avatar-card {
         background: #f5f5f5;
         border-radius: 15px;
@@ -112,50 +114,50 @@
         text-decoration: none;
         display: block;
     }
-    
+
     .avatar-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     }
-    
+
     .avatar-card.active {
         border-color: #4CAF50;
         background: #e8f5e9;
     }
-    
+
     .avatar-card .emoji {
         font-size: 3rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .siembras-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         gap: 1.5rem;
         margin-top: 1.5rem;
     }
-    
+
     .siembra-card {
         background: #f5f5f5;
         border-radius: 15px;
         overflow: hidden;
         transition: transform 0.3s;
     }
-    
+
     .siembra-card:hover {
         transform: translateY(-5px);
     }
-    
+
     .siembra-image {
         width: 100%;
         height: 200px;
         object-fit: cover;
     }
-    
+
     .siembra-info {
         padding: 1rem;
     }
-    
+
     .siembra-status {
         display: inline-block;
         padding: 0.3rem 0.8rem;
@@ -163,28 +165,28 @@
         font-size: 0.85rem;
         font-weight: 600;
     }
-    
+
     .siembra-status.validada {
         background: #d4edda;
         color: #155724;
     }
-    
+
     .siembra-status.pendiente {
         background: #fff3cd;
         color: #856404;
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 3rem;
         color: #666;
     }
-    
+
     .empty-state .emoji {
         font-size: 4rem;
         margin-bottom: 1rem;
     }
-    
+
     .btn {
         display: inline-block;
         padding: 0.8rem 1.5rem;
@@ -195,21 +197,35 @@
         font-weight: 600;
         transition: transform 0.2s;
     }
-    
+
     .btn:hover {
         transform: translateY(-2px);
     }
-    
+
     @media (max-width: 768px) {
         .profile-header {
             grid-template-columns: 1fr;
             text-align: center;
         }
-        
+
         .stats-grid {
             grid-template-columns: 1fr;
         }
     }
+
+    .progress-bar {
+        width: calc(var(--p) * 1%);
+        height: 100%;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        transition: width 1s ease;
+    }
+    
 </style>
 {% endblock %}
 
@@ -218,14 +234,14 @@
     <div class="avatar-display">
         {{ perfil.avatar_actual.emoji }}
     </div>
-    
+
     <div class="profile-info">
         <h2>{{ user.get_full_name }}</h2>
         <p class="username">@{{ user.username }}</p>
         <span class="level-badge">
             Nivel {{ perfil.nivel }} - {{ perfil.avatar_actual.nombre }}
         </span>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number">{{ perfil.puntos }}</div>
@@ -241,77 +257,79 @@
             </div>
         </div>
     </div>
-    
+
     <div>
         <a href="{% url 'reforest:mis_siembras' %}" class="btn">Ver Todas mis Siembras</a>
     </div>
 </div>
 
-{% if perfil.nivel < 5 %}
-<div class="progress-section">
+{% if perfil.nivel < 5 %} <div class="progress-section">
     <h3>Progreso hacia el Nivel {{ perfil.nivel|add:1 }}</h3>
     <div class="progress-bar-container">
-        <div class="progress-bar" style="width: {{ progreso|default:0 }}%">
+        <div class="progress-bar" style="--p: {{ progreso|default:0|floatformat:0 }};">
             {{ progreso|default:0|floatformat:0 }}%
         </div>
     </div>
     <p style="margin-top: 1rem; color: #666;">
         Necesitas {{ faltan|default:0 }} puntos mas para alcanzar el Nivel {{ perfil.nivel|add:1 }}
     </p>
-</div>
-{% endif %}
-
-<div class="avatars-section">
-    <h3>Avatares</h3>
-    <p style="color: #666; margin-bottom: 1rem;">Selecciona tu avatar favorito (desbloquea mas subiendo de nivel)</p>
-    
-    <div class="avatars-grid">
-        {% for avatar in avatares_disponibles %}
-        <a href="{% url 'reforest:cambiar_avatar' avatar.id %}" class="avatar-card {% if avatar.id == perfil.avatar_actual.id %}active{% endif %}">
-            <div class="emoji">{{ avatar.emoji }}</div>
-            <div class="name">{{ avatar.nombre }}</div>
-            <div class="level">Nivel {{ avatar.nivel_requerido }}</div>
-        </a>
-        {% endfor %}
-    </div>
-</div>
-
-<div class="siembras-section">
-    <h3>Ultimas Siembras</h3>
-    
-    {% if siembras %}
-    <div class="siembras-grid">
-        {% for siembra in siembras %}
-        <div class="siembra-card">
-            <img src="{{ siembra.foto.url }}" alt="Siembra" class="siembra-image">
-            <div class="siembra-info">
-                <span class="siembra-status {{ siembra.estado }}">
-                    {% if siembra.estado == 'validada' %}Validada
-                    {% elif siembra.estado == 'pendiente' %}Pendiente
-                    {% else %}Rechazada{% endif %}
-                </span>
-                <p style="margin-top: 0.5rem; color: #666;">
-                    <strong>Especie:</strong> {{ siembra.especie|default:"No especificada" }}
-                </p>
-                <p style="color: #999; font-size: 0.9rem; margin-top: 0.3rem;">
-                    {{ siembra.fecha_siembra|date:"d/m/Y" }}
-                </p>
-                {% if siembra.estado == 'validada' %}
-                <p style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">
-                    +{{ siembra.puntos_otorgados }} puntos
-                </p>
-                {% endif %}
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="emoji">🌱</div>
-        <h3>Aun no has registrado siembras</h3>
-        <p>Es momento de plantar tu primer arbol!</p>
-        <a href="{% url 'reforest:registrar_siembra' %}" class="btn" style="margin-top: 1rem;">Registrar Primera Siembra</a>
     </div>
     {% endif %}
-</div>
-{% endblock %}
+
+    <div class="avatars-section">
+        <h3>Avatares</h3>
+        <p style="color: #666; margin-bottom: 1rem;">Selecciona tu avatar favorito (desbloquea mas subiendo de nivel)
+        </p>
+
+        <div class="avatars-grid">
+            {% for avatar in avatares_disponibles %}
+            <a href="{% url 'reforest:cambiar_avatar' avatar.id %}"
+                class="avatar-card {% if avatar.id == perfil.avatar_actual.id %}active{% endif %}">
+                <div class="emoji">{{ avatar.emoji }}</div>
+                <div class="name">{{ avatar.nombre }}</div>
+                <div class="level">Nivel {{ avatar.nivel_requerido }}</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="siembras-section">
+        <h3>Ultimas Siembras</h3>
+
+        {% if siembras %}
+        <div class="siembras-grid">
+            {% for siembra in siembras %}
+            <div class="siembra-card">
+                <img src="{{ siembra.foto.url }}" alt="Siembra" class="siembra-image">
+                <div class="siembra-info">
+                    <span class="siembra-status {{ siembra.estado }}">
+                        {% if siembra.estado == 'validada' %}Validada
+                        {% elif siembra.estado == 'pendiente' %}Pendiente
+                        {% else %}Rechazada{% endif %}
+                    </span>
+                    <p style="margin-top: 0.5rem; color: #666;">
+                        <strong>Especie:</strong> {{ siembra.especie|default:"No especificada" }}
+                    </p>
+                    <p style="color: #999; font-size: 0.9rem; margin-top: 0.3rem;">
+                        {{ siembra.fecha_siembra|date:"d/m/Y" }}
+                    </p>
+                    {% if siembra.estado == 'validada' %}
+                    <p style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">
+                        +{{ siembra.puntos_otorgados }} puntos
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="emoji">🌱</div>
+            <h3>Aun no has registrado siembras</h3>
+            <p>Es momento de plantar tu primer arbol!</p>
+            <a href="{% url 'reforest:registrar_siembra' %}" class="btn" style="margin-top: 1rem;">Registrar Primera
+                Siembra</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endblock %}
