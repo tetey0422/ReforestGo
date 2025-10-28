@@ -192,36 +192,35 @@
 {% block extra_js %}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Datos de viveros y zonas desde Django
-    const viverosData = {{ viveros|safe }};
-    const zonasData = {{ zonas|safe }};
-    
+    // Datos de viveros y zonas desde Django (escapejs + JSON.parse para seguridad)
+    const viverosData = JSON.parse('{{ viveros|escapejs }}');
+    const zonasData = JSON.parse('{{ zonas|escapejs }}');
+
     // Inicializar mapa centrado en Barrancabermeja, Colombia
     const map = L.map('map').setView([7.0653, -73.8534], 13);
-    
+
     // Añadir capa de OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 18,
     }).addTo(map);
-    
-    // Iconos personalizados
+
+    // Iconos personalizados (ejemplo simplificado)
     const viveroIcon = L.divIcon({
         className: 'custom-icon',
-        html: '<div style="background: #4CAF50; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🌱</div>',
+        html: '<div style="background: #4CAF50; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">🌱</div>',
         iconSize: [30, 30]
     });
-    
+
     const zonaIcon = L.divIcon({
         className: 'custom-icon',
-        html: '<div style="background: #2196F3; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">🎯</div>',
+        html: '<div style="background: #2196F3; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px;">🎯</div>',
         iconSize: [30, 30]
     });
-    
+
     // Añadir marcadores de viveros
     viverosData.forEach(vivero => {
         const marker = L.marker([vivero.lat, vivero.lng], { icon: viveroIcon }).addTo(map);
-        
         const popupContent = `
             <div class="popup-title">🌱 ${vivero.nombre}</div>
             <div class="popup-info"><strong>📍 Dirección:</strong> ${vivero.direccion}</div>
@@ -230,30 +229,26 @@
             <div class="popup-info"><strong>🌿 Especies:</strong> ${vivero.especies}</div>
             ${vivero.destacado ? '<div style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">⭐ Vivero Destacado</div>' : ''}
         `;
-        
         marker.bindPopup(popupContent);
     });
-    
+
     // Añadir marcadores de zonas
     zonasData.forEach(zona => {
         const marker = L.marker([zona.lat, zona.lng], { icon: zonaIcon }).addTo(map);
-        
         const popupContent = `
             <div class="popup-title">🎯 ${zona.nombre}</div>
             <div class="popup-info"><strong>🏞️ Tipo:</strong> ${zona.tipo}</div>
             <div class="popup-info"><strong>📝 Descripción:</strong> ${zona.descripcion}</div>
             <div class="popup-info"><strong>💡 Recomendaciones:</strong> ${zona.recomendaciones}</div>
         `;
-        
         marker.bindPopup(popupContent);
     });
-    
+
     // Ajustar zoom para mostrar todos los marcadores
     if (viverosData.length > 0 || zonasData.length > 0) {
         const allMarkers = [];
         viverosData.forEach(v => allMarkers.push([v.lat, v.lng]));
         zonasData.forEach(z => allMarkers.push([z.lat, z.lng]));
-        
         if (allMarkers.length > 0) {
             const bounds = L.latLngBounds(allMarkers);
             map.fitBounds(bounds, { padding: [50, 50] });
