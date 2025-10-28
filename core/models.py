@@ -185,39 +185,39 @@ class Siembra(models.Model):
                 # Si hay error al procesar la imagen, continuar sin optimizar
                 pass
     
-def validar(self, admin_user):
-    """Valida la siembra y otorga puntos al usuario"""
-    from django.utils import timezone
-    
-    print(f"🔍 DEBUG - Validando siembra de: {self.usuario.username}")
-    print(f"🔍 DEBUG - ¿Es staff? {self.usuario.is_staff}")
-    print(f"🔍 DEBUG - ¿Es superuser? {self.usuario.is_superuser}")
-    
-    self.estado = 'validada'
-    self.validada_por = admin_user
-    self.fecha_validacion = timezone.now()
-    self.save()
-    
-    # NO otorgar puntos si el usuario es staff o superuser
-    if self.usuario.is_staff or self.usuario.is_superuser:
-        print(f"❌ DEBUG - NO se otorgan puntos porque el usuario es admin/staff")
-        return False
-    
-    # Otorgar puntos solo a usuarios normales
-    print(f"✅ DEBUG - Usuario normal, otorgando {self.puntos_otorgados} puntos")
-    
-    perfil = self.usuario.perfil
-    puntos_antes = perfil.puntos
-    nivel_antes = perfil.nivel
-    
-    print(f"📊 DEBUG - Antes: {puntos_antes} puntos, Nivel {nivel_antes}")
-    
-    subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
-    
-    print(f"📊 DEBUG - Después: {perfil.puntos} puntos, Nivel {perfil.nivel}")
-    print(f"🎉 DEBUG - ¿Subió de nivel? {subio_nivel}")
-    
-    return subio_nivel
+    def validar(self, admin_user):
+            """Valida la siembra y otorga puntos al usuario"""
+            from django.utils import timezone
+        
+            print(f"🔍 DEBUG - Validando siembra de: {self.usuario.username}")
+            print(f"🔍 DEBUG - ¿Es staff? {self.usuario.is_staff}")
+            print(f"🔍 DEBUG - ¿Es superuser? {self.usuario.is_superuser}")
+        
+            self.estado = 'validada'
+            self.validada_por = admin_user
+            self.fecha_validacion = timezone.now()
+            self.save()
+        
+            # NO otorgar puntos si el usuario es staff o superuser
+            if self.usuario.is_staff or self.usuario.is_superuser:
+                print(f"❌ DEBUG - NO se otorgan puntos porque el usuario es admin/staff")
+                return False
+        
+            # Otorgar puntos solo a usuarios normales
+            print(f"✅ DEBUG - Usuario normal, otorgando {self.puntos_otorgados} puntos")
+        
+            perfil = self.usuario.perfil
+            puntos_antes = perfil.puntos
+            nivel_antes = perfil.nivel
+        
+            print(f"📊 DEBUG - Antes: {puntos_antes} puntos, Nivel {nivel_antes}")
+        
+            subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
+        
+            print(f"📊 DEBUG - Después: {perfil.puntos} puntos, Nivel {perfil.nivel}")
+            print(f"🎉 DEBUG - ¿Subió de nivel? {subio_nivel}")
+        
+            return subio_nivel
 
 
 # Señal para crear perfil automáticamente

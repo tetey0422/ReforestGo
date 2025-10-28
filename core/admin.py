@@ -98,7 +98,6 @@ class SiembraAdmin(admin.ModelAdmin):
     list_filter = ['estado', 'fecha_siembra', 'especie']
     search_fields = ['usuario__username', 'especie', 'descripcion']
     readonly_fields = ['usuario', 'foto_preview', 'fecha_siembra', 'ubicacion_mapa']
-    list_editable = ['estado']
     ordering = ['-fecha_siembra']
     actions = ['validar_siembras', 'rechazar_siembras']
     
@@ -150,7 +149,7 @@ class SiembraAdmin(admin.ModelAdmin):
     def acciones_rapidas(self, obj):
         if obj.estado == 'pendiente':
             return format_html(
-                '<a class="button" href="/admin/reforest/siembra/{}/change/">✅ Revisar</a>',
+                '<a class="button" href="/admin/core/siembra/{}/change/">✅ Revisar</a>',
                 obj.pk
             )
         elif obj.estado == 'validada':
@@ -178,3 +177,39 @@ class SiembraAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{count} siembra(s) rechazada(s).')
     rechazar_siembras.short_description = "❌ Rechazar siembras seleccionadas"
+    
+    def save_model(self, request, obj, form, change):
+        """Override para manejar la validación automática cuando se cambia el estado"""
+        # Si es una modificación (no creación)
+        if change:
+            # Obtener el objeto original de la base de datos
+            try:
+                original = Siembra.objects.get(pk=obj.pk)
+                
+                # Si el estado cambió de 'pendiente' a 'validada'
+                if original.estado == 'pendiente' and obj.estado == 'validada':
+                    # Usar el método validar() para otorgar puntos automáticamente
+                    obj.validada_por = request.user
+                    obj.fecha_validacion = timezone.now()
+                    super().save_model(request, obj, form, change)
+                    
+                    # Otorgar puntos
+                    if not obj.usuario.is_staff and not obj.usuario.is_superuser:
+                        perfil = obj.usuario.perfil
+                        perfil.sumar_puntos(obj.puntos_otorgados)
+                        self.message_user(request, f'✅ Siembra validada. Se otorgaron {obj.puntos_otorgados} puntos a {obj.usuario.username}')
+                    else:
+                        self.message_user(request, f'✅ Siembra validada (usuario admin - sin puntos)')
+                    return
+                
+                # Si cambió a rechazada
+                elif original.estado == 'pendiente' and obj.estado == 'rechazada':
+                    obj.validada_por = request.user
+                    obj.fecha_validacion = timezone.now()
+                    self.message_user(request, f'❌ Siembra rechazada')
+            
+            except Siembra.DoesNotExist:
+                pass
+        
+        # Guardar normalmente
+        super().save_model(request, obj, form, change)

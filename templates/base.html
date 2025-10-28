@@ -1,26 +1,28 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Reforest Go - Planta árboles, gana puntos y ayuda al planeta">
     <meta name="keywords" content="reforestación, medio ambiente, gamificación, árboles, sostenibilidad">
     <meta name="author" content="Reforest Go">
-    
+
     <title>{% block title %}Reforest Go - Planta, Suma y Transforma el Planeta{% endblock %}</title>
-    
+
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
-    
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+
     {% block extra_css %}{% endblock %}
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         :root {
             --primary-color: #4CAF50;
             --primary-dark: #45a049;
@@ -34,10 +36,10 @@
             --warning: #ffc107;
             --danger: #dc3545;
             --info: #17a2b8;
-            --shadow: 0 2px 10px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 40px rgba(0,0,0,0.2);
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: var(--background);
@@ -47,7 +49,7 @@
             display: flex;
             flex-direction: column;
         }
-        
+
         .navbar {
             background: var(--white);
             padding: 1rem 2rem;
@@ -56,7 +58,7 @@
             top: 0;
             z-index: 1000;
         }
-        
+
         .navbar-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -66,7 +68,7 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
-        
+
         .navbar-brand {
             display: flex;
             align-items: center;
@@ -75,19 +77,19 @@
             font-size: 1.5rem;
             font-weight: 700;
         }
-        
+
         .navbar-brand .logo {
             font-size: 2rem;
             margin-right: 0.5rem;
         }
-        
+
         .navbar-menu {
             display: flex;
             align-items: center;
             gap: 1.5rem;
             list-style: none;
         }
-        
+
         .navbar-menu a {
             text-decoration: none;
             color: var(--text-dark);
@@ -96,12 +98,12 @@
             padding: 0.5rem 1rem;
             border-radius: 8px;
         }
-        
+
         .navbar-menu a:hover {
             color: var(--primary-color);
             background: rgba(76, 175, 80, 0.1);
         }
-        
+
         .navbar-menu .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: var(--white);
@@ -109,37 +111,37 @@
             border-radius: 25px;
             font-weight: 600;
         }
-        
+
         .navbar-menu .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
-        
+
         .navbar-user {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
-        
+
         .user-avatar {
             font-size: 2rem;
         }
-        
+
         .user-info {
             display: flex;
             flex-direction: column;
         }
-        
+
         .user-name {
             font-weight: 600;
             color: var(--text-dark);
         }
-        
+
         .user-level {
             font-size: 0.85rem;
             color: var(--text-light);
         }
-        
+
         .menu-toggle {
             display: none;
             background: none;
@@ -148,7 +150,7 @@
             cursor: pointer;
             color: var(--text-dark);
         }
-        
+
         /* Estilo para el botón de logout */
         .logout-btn {
             background: none;
@@ -162,17 +164,17 @@
             font-family: inherit;
             transition: all 0.3s;
         }
-        
+
         .logout-btn:hover {
             color: var(--danger);
             background: rgba(220, 53, 69, 0.1);
         }
-        
+
         .logout-form {
             display: inline;
             margin: 0;
         }
-        
+
         .main-content {
             flex: 1;
             width: 100%;
@@ -180,11 +182,11 @@
             margin: 2rem auto;
             padding: 0 1rem;
         }
-        
+
         .messages {
             margin-bottom: 1.5rem;
         }
-        
+
         .alert {
             padding: 1rem 1.5rem;
             border-radius: 10px;
@@ -194,57 +196,58 @@
             gap: 1rem;
             animation: slideIn 0.3s ease;
         }
-        
+
         @keyframes slideIn {
             from {
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         @keyframes slideOut {
             to {
                 opacity: 0;
                 transform: translateY(-10px);
             }
         }
-        
+
         .alert-success {
             background: #d4edda;
             color: #155724;
             border-left: 4px solid var(--success);
         }
-        
+
         .alert-error,
         .alert-danger {
             background: #f8d7da;
             color: #721c24;
             border-left: 4px solid var(--danger);
         }
-        
+
         .alert-warning {
             background: #fff3cd;
             color: #856404;
             border-left: 4px solid var(--warning);
         }
-        
+
         .alert-info {
             background: #d1ecf1;
             color: #0c5460;
             border-left: 4px solid var(--info);
         }
-        
+
         .footer {
             background: var(--text-dark);
             color: var(--white);
             padding: 2rem;
             margin-top: 4rem;
         }
-        
+
         .footer-container {
             max-width: 1400px;
             margin: 0 auto;
@@ -252,30 +255,30 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
         }
-        
+
         .footer-section h3 {
             color: var(--primary-color);
             margin-bottom: 1rem;
         }
-        
+
         .footer-section ul {
             list-style: none;
         }
-        
+
         .footer-section ul li {
             margin-bottom: 0.5rem;
         }
-        
+
         .footer-section a {
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .footer-section a:hover {
             color: var(--white);
         }
-        
+
         .footer-bottom {
             text-align: center;
             margin-top: 2rem;
@@ -283,20 +286,20 @@
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.6);
         }
-        
+
         @media (max-width: 768px) {
             .navbar-container {
                 flex-direction: column;
                 align-items: flex-start;
             }
-            
+
             .menu-toggle {
                 display: block;
                 position: absolute;
                 top: 1rem;
                 right: 2rem;
             }
-            
+
             .navbar-menu {
                 display: none;
                 width: 100%;
@@ -304,37 +307,38 @@
                 align-items: flex-start;
                 gap: 0.5rem;
             }
-            
+
             .navbar-menu.active {
                 display: flex;
             }
-            
+
             .navbar-menu a,
             .logout-btn {
                 width: 100%;
                 text-align: left;
             }
         }
-        
+
         ::-webkit-scrollbar {
             width: 10px;
         }
-        
+
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
-        
+
         ::-webkit-scrollbar-thumb {
             background: var(--primary-color);
             border-radius: 5px;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
             background: var(--primary-dark);
         }
     </style>
     {% block extra_style %}{% endblock %}
 </head>
+
 <body>
     <nav class="navbar">
         <div class="navbar-container">
@@ -342,44 +346,46 @@
                 <span class="logo">🌱</span>
                 <span>Reforest Go</span>
             </a>
-            
+
             <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-            
+
             <ul class="navbar-menu" id="navbarMenu">
                 <li><a href="{% url 'reforest:index' %}">Inicio</a></li>
                 <li><a href="{% url 'reforest:mapa' %}">🗺️ Mapa</a></li>
-                
+
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'reforest:perfil' %}">👤 Mi Perfil</a></li>
-                    <li><a href="{% url 'reforest:mis_siembras' %}">🌳 Mis Siembras</a></li>
-                    <li><a href="{% url 'reforest:ranking' %}">🏆 Ranking</a></li>
-                    <li><a href="{% url 'reforest:registrar_siembra' %}" class="btn-primary">📸 Registrar Siembra</a></li>
-                    
-                    {% if user.is_staff %}
-                        <li><a href="/admin/">⚙️ Admin</a></li>
-                    {% endif %}
-                    
-                    <li class="navbar-user">
+                <li><a href="{% url 'reforest:mis_siembras' %}">🌳 Mis Siembras</a></li>
+                <li><a href="{% url 'reforest:ranking' %}">🏆 Ranking</a></li>
+                <li><a href="{% url 'reforest:registrar_siembra' %}" class="btn-primary">📸 Registrar Siembra</a></li>
+
+                {% if user.is_staff %}
+                <li><a href="/admin/">⚙️ Admin</a></li>
+                {% endif %}
+
+                <li class="navbar-user">
+                    <a href="{% url 'reforest:perfil' %}"
+                        style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit;">
                         <span class="user-avatar">{{ user.perfil.avatar_actual.emoji }}</span>
                         <div class="user-info">
                             <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
                             <span class="user-level">Nivel {{ user.perfil.nivel }} • {{ user.perfil.puntos }} pts</span>
                         </div>
-                    </li>
-                    <li>
-                        <form method="post" action="{% url 'reforest:logout' %}" class="logout-form">
-                            {% csrf_token %}
-                            <button type="submit" class="logout-btn">🚪 Salir</button>
-                        </form>
-                    </li>
+                    </a>
+                </li>
+                <li>
+                    <form method="post" action="{% url 'reforest:logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">🚪 Salir</button>
+                    </form>
+                </li>
                 {% else %}
-                    <li><a href="{% url 'reforest:login' %}">Iniciar Sesión</a></li>
-                    <li><a href="{% url 'reforest:registro' %}" class="btn-primary">Registrarse</a></li>
+                <li><a href="{% url 'reforest:login' %}">Iniciar Sesión</a></li>
+                <li><a href="{% url 'reforest:registro' %}" class="btn-primary">Registrarse</a></li>
                 {% endif %}
             </ul>
         </div>
     </nav>
-    
+
     <div class="main-content">
         {% if messages %}
         <div class="messages">
@@ -395,17 +401,18 @@
             {% endfor %}
         </div>
         {% endif %}
-        
+
         {% block content %}{% endblock %}
     </div>
-    
+
     <footer class="footer">
         <div class="footer-container">
             <div class="footer-section">
                 <h3>🌱 Reforest Go</h3>
-                <p>Planta, suma y transforma el planeta. Una iniciativa para combatir el cambio climático árbol por árbol.</p>
+                <p>Planta, suma y transforma el planeta. Una iniciativa para combatir el cambio climático árbol por
+                    árbol.</p>
             </div>
-            
+
             <div class="footer-section">
                 <h3>Enlaces Rápidos</h3>
                 <ul>
@@ -419,7 +426,7 @@
                     {% endif %}
                 </ul>
             </div>
-            
+
             <div class="footer-section">
                 <h3>Recursos</h3>
                 <ul>
@@ -429,7 +436,7 @@
                     <li><a href="#">Blog</a></li>
                 </ul>
             </div>
-            
+
             <div class="footer-section">
                 <h3>Contacto</h3>
                 <ul>
@@ -440,19 +447,19 @@
                 </ul>
             </div>
         </div>
-        
+
         <div class="footer-bottom">
             <p>&copy; 2025 Reforest Go. Todos los derechos reservados.</p>
         </div>
     </footer>
-    
+
     <script>
         function toggleMenu() {
             const menu = document.getElementById('navbarMenu');
             menu.classList.toggle('active');
         }
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(alert => {
                 setTimeout(() => {
@@ -462,7 +469,8 @@
             });
         });
     </script>
-    
+
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>
