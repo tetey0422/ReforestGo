@@ -1,75 +1,190 @@
-# ReforestGo
+# 🌱 ReforestGo
 
-Aplicación web Django (backend en Python + plantillas HTML) para el proyecto ReforestGo.
+**Planta, Suma y Transforma el Planeta**
 
-## Descripción
-Proyecto web desarrollado con Django. Contiene el código del backend en Python y plantillas HTML para la interfaz. Este README explica cómo preparar el entorno, ejecutar la aplicación en desarrollo y buenas prácticas para contribuir.
+ReforestGo es una aplicación web gamificada desarrollada con Django que permite a los usuarios registrar sus siembras de árboles, verificar árboles de otros usuarios, ganar puntos, subir de nivel y contribuir activamente a la reforestación del planeta.
 
-## Requisitos
-- Python 3.10+ (recomendado 3.11)
-- pip
-- virtualenv (opcional)
-- node (si agregas assets frontend)
+## 🌟 Características Principales
 
-Las dependencias de Python están en `requirements.txt`.
+- **🌳 Registro de Siembras**: Los usuarios pueden registrar árboles plantados con foto, ubicación GPS y descripción
+- **🗺️ Mapa Interactivo**: Visualiza todas las siembras en un mapa global con marcadores personalizados
+- **🔍 Sistema de Verificación**: Usuarios de nivel 3+ pueden verificar árboles plantados por otros
+- **🏆 Sistema de Puntos y Niveles**: Gamificación completa con avatares, logros y ranking
+- **💨 Cálculo de Oxígeno**: Estima el oxígeno producido por tus árboles plantados
+- **📊 Estadísticas Personales**: Visualiza tu impacto ambiental y progreso
+- **🎨 Sistema de Avatares**: Desbloquea avatares especiales al subir de nivel
+- **🌍 Zonas Automáticas**: Detección automática de zonas geográficas de reforestación
 
-## Instalación (local)
-1. Clona el repo:
-   git clone https://github.com/tetey0422/ReforestGo.git
-   cd ReforestGo
+## 📋 Requisitos del Sistema
 
-2. Crea y activa un entorno virtual:
-   python -m venv .venv
-   source .venv/bin/activate   # macOS / Linux
-   .venv\Scripts\activate      # Windows (PowerShell)
+- **Python**: 3.10+ (recomendado 3.13)
+- **pip**: Para gestión de paquetes
+- **SQLite3**: Base de datos (incluida con Python)
+- **Navegador moderno**: Chrome, Firefox, Edge, Safari
 
-3. Instala dependencias:
-   pip install -r requirements.txt
+## 🚀 Instalación y Configuración
 
-4. Variables de entorno
-   Crea un archivo `.env` en la raíz. Ejemplo mínimo:
-   ```
-   SECRET_KEY=tu_secret_key_segura
-   DEBUG=True
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   DATABASE_URL=sqlite:///db.sqlite3
-   ```
+### 1️⃣ Clonar el Repositorio
+```bash
+git clone https://github.com/tetey0422/ReforestGo.git
+cd ReforestGo
+```
 
-   El proyecto usa `python-dotenv` si tu settings.py lo carga (revisa `ReforestGo/settings.py`).
+### 2️⃣ Crear Entorno Virtual
+```bash
+# Windows
+python -m venv env
+env\Scripts\activate
 
-5. Migraciones y usuario administrador:
-   python manage.py migrate
-   python manage.py createsuperuser
+# macOS / Linux
+python3 -m venv env
+source env/bin/activate
+```
 
-6. Ejecutar en modo desarrollo:
-   python manage.py runserver
+### 3️⃣ Instalar Dependencias
+```bash
+pip install -r requirements.txt
+```
 
-## Estructura recomendada
-- ReforestGo/ (paquete Django principal)
-- app/ o src/ (si separas lógica)
-- templates/ (HTML)
-- static/ (CSS/JS/imágenes)
-- requirements.txt
-- .env (no versionar)
-- tests/
+### 4️⃣ Configurar Variables de Entorno
+Crea un archivo `.env` en la raíz del proyecto:
+```env
+SECRET_KEY=tu_clave_secreta_super_segura_aqui
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:///db.sqlite3
+```
 
-## Comandos útiles
-- Ejecutar tests:
-  pytest
+### 5️⃣ Aplicar Migraciones
+```bash
+python manage.py migrate
+```
 
-- Formato y lint:
-  black .
-  ruff .
+### 6️⃣ Crear Usuario Administrador
+```bash
+python manage.py createsuperuser
+```
 
-- Crear un build (si añades frontend con node):
-  npm install
-  npm run build
+### 7️⃣ Ejecutar el Servidor
+```bash
+python manage.py runserver
+```
 
-## Contribuir
-- Abre un issue antes de cambios grandes.
-- Crea una rama con nombre claro: `feature/<desc>` o `fix/<desc>`.
-- Sigue el formateo y linting del proyecto.
-- Añade tests cuando sea posible.
+Accede a la aplicación en: **http://localhost:8000**
 
-## Licencia
-Este repositorio usa la licencia MIT (archivo LICENSE en la raíz).
+## 📁 Estructura del Proyecto
+
+```
+ReforestGo/
+├── core/                      # App principal Django
+│   ├── models.py             # Modelos: Usuario, Siembra, Verificación
+│   ├── views.py              # Vistas y lógica de negocio
+│   ├── urls.py               # Rutas de la aplicación
+│   ├── admin.py              # Panel de administración
+│   └── management/           # Comandos personalizados
+│       └── commands/
+│           ├── actualizar_oxigeno.py
+│           ├── asignar_verificador.py
+│           └── generar_zonas_automaticas.py
+├── ReforestGo/               # Configuración del proyecto
+│   ├── settings.py           # Configuración principal
+│   ├── urls.py               # URLs globales
+│   └── wsgi.py              # WSGI para producción
+├── templates/                # Plantillas HTML
+│   ├── base.html            # Plantilla base
+│   ├── index.html           # Página principal
+│   ├── mapa.html            # Mapa interactivo
+│   ├── registrar_siembra.html
+│   ├── verificar_arbol.html
+│   └── ...
+├── static/                   # Archivos estáticos (CSS, JS, imágenes)
+├── media/                    # Archivos subidos por usuarios
+│   └── siembras/            # Fotos de árboles
+├── db.sqlite3               # Base de datos SQLite
+├── manage.py                # CLI de Django
+└── requirements.txt         # Dependencias Python
+```
+
+## 🎮 Comandos Personalizados
+
+ReforestGo incluye comandos de gestión personalizados:
+
+```bash
+# Actualizar cálculo de oxígeno de todas las siembras
+python manage.py actualizar_oxigeno
+
+# Asignar verificadores automáticamente a siembras
+python manage.py asignar_verificador
+
+# Generar zonas geográficas automáticas
+python manage.py generar_zonas_automaticas
+```
+
+## 🎨 Paleta de Colores
+
+| Color | HEX | Uso |
+|-------|-----|-----|
+| 🌲 Verde Bosque | `#2E7D32` | Logo, encabezados, elementos principales |
+| 🌿 Verde Claro | `#66BB6A` | Botones de acción, hover, estados activos |
+| 🏔️ Tierra/Marrón | `#8D6E63` | Elementos neutros, fondos secundarios |
+| ☀️ Crema Luz | `#FFF9C4` | Fondo general, zonas de texto |
+| 🌊 Azul Cielo | `#29B6F6` | Enlaces, llamadas a la acción |
+| ⚫ Gris Oscuro | `#424242` | Texto principal, contraste |
+
+## 👥 Roles y Permisos
+
+- **Usuario Normal (Nivel 1-2)**: Puede registrar siembras y ver el mapa
+- **Verificador (Nivel 3+)**: Puede verificar árboles de otros usuarios
+- **Administrador**: Acceso completo al panel de administración
+
+## 🔒 Seguridad
+
+- Autenticación basada en sesiones de Django
+- CSRF protection habilitado
+- Validación de imágenes subidas
+- Límites de tamaño de archivos
+- Sanitización de datos de usuario
+
+## 🧪 Testing
+
+```bash
+# Ejecutar tests
+python manage.py test
+
+# Con cobertura (si tienes coverage instalado)
+coverage run manage.py test
+coverage report
+```
+
+## 📊 Scripts Útiles
+
+Ubicados en `scripts/`:
+- `init_data.py`: Inicializar datos de prueba
+- `test_verificacion.py`: Probar sistema de verificación
+
+## 🤝 Contribuir
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+### Convenciones de Código
+- Seguir PEP 8 para Python
+- Comentarios en español
+- Nombres de variables descriptivos
+- Documentar funciones complejas
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver archivo `LICENSE` para más detalles.
+
+## 📧 Contacto
+
+- **Repositorio**: [github.com/tetey0422/ReforestGo](https://github.com/tetey0422/ReforestGo)
+- **Issues**: [github.com/tetey0422/ReforestGo/issues](https://github.com/tetey0422/ReforestGo/issues)
+
+---
+
+**¡Únete a la reforestación del planeta! 🌍🌱**
