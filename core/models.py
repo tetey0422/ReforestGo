@@ -237,6 +237,9 @@ class Siembra(models.Model):
         # Calcular oxígeno después de validar
         self.calcular_oxigeno()
         
+        # Verificar si se debe crear una zona automática
+        self.verificar_crear_zona_automatica()
+        
         # NO otorgar puntos si el usuario es staff o superuser
         if self.usuario.is_staff or self.usuario.is_superuser:
             return False
@@ -245,6 +248,88 @@ class Siembra(models.Model):
         subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
         
         return subio_nivel
+    
+    def verificar_crear_zona_automatica(self):
+        """Verifica si hay más de 10 árboles en el área y crea una zona automática"""
+        from math import radians, sin, cos, sqrt, atan2
+        
+        radio_busqueda = 1.0  # 1 km de radio
+        
+        # Contar siembras validadas cercanas (incluida esta)
+        siembras_cercanas = Siembra.objects.filter(estado='validada')
+        
+        arboles_en_area = []
+        for siembra in siembras_cercanas:
+            distancia = self.calcular_distancia_entre_puntos(
+                float(self.latitud), float(self.longitud),
+                float(siembra.latitud), float(siembra.longitud)
+            )
+            if distancia <= radio_busqueda:
+                arboles_en_area.append(siembra)
+        
+        # Si hay más de 10 árboles, crear zona automática
+        if len(arboles_en_area) >= 10:
+            # Verificar si ya existe una zona en esta área
+            from .models import Zona
+            zona_existente = False
+            
+            for zona in Zona.objects.filter(activa=True):
+                distancia_zona = self.calcular_distancia_entre_puntos(
+                    float(self.latitud), float(self.longitud),
+                    float(zona.latitud), float(zona.longitud)
+                )
+                if distancia_zona <= 1.5:  # 1.5 km de tolerancia
+                    zona_existente = True
+                    # Actualizar contador de la zona existente
+                    zona.contar_siembras()
+                    break
+            
+            # Si no existe, crear nueva zona
+            if not zona_existente:
+                # Calcular centro de masa de los árboles
+                lat_promedio = sum(float(s.latitud) for s in arboles_en_area) / len(arboles_en_area)
+                lng_promedio = sum(float(s.longitud) for s in arboles_en_area) / len(arboles_en_area)
+                
+                # Determinar tipo de terreno predominante
+                especies_comunes = {}
+                for siembra in arboles_en_area:
+                    if siembra.especie:
+                        especies_comunes[siembra.especie] = especies_comunes.get(siembra.especie, 0) + 1
+                
+                especie_comun = max(especies_comunes.items(), key=lambda x: x[1])[0] if especies_comunes else "árboles"
+                
+                # Crear zona automática
+                nueva_zona = Zona.objects.create(
+                    nombre=f"Zona de Reforestación - {len(arboles_en_area)} árboles",
+                    latitud=lat_promedio,
+                    longitud=lng_promedio,
+                    tipo_terreno='urbano',  # Por defecto, se puede mejorar con geolocalización
+                    descripcion=f"Zona generada automáticamente con {len(arboles_en_area)} árboles plantados. Especie predominante: {especie_comun}.",
+                    recomendaciones=f"Esta zona tiene una buena concentración de árboles. Se recomienda continuar plantando especies similares a {especie_comun}.",
+                    activa=True,
+                    auto_generada=True,
+                    radio_km=radio_busqueda,
+                    total_siembras=len(arboles_en_area)
+                )
+    
+    def calcular_distancia_entre_puntos(self, lat1, lon1, lat2, lon2):
+        """Calcula la distancia en km entre dos puntos usando fórmula de Haversine"""
+        from math import radians, sin, cos, sqrt, atan2
+        
+        R = 6371  # Radio de la Tierra en km
+        
+        lat1_rad = radians(lat1)
+        lon1_rad = radians(lon1)
+        lat2_rad = radians(lat2)
+        lon2_rad = radians(lon2)
+        
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        
+        a = sin(dlat/2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        
+        return R * c
 
 
 class Verificacion(models.Model):
@@ -344,7 +429,12 @@ class Verificacion(models.Model):
         perfil.verificaciones_realizadas += 1
         perfil.verificaciones_aprobadas += 1
         perfil.puntos_verificacion += self.puntos_otorgados
-        perfil.sumar_puntos(self.puntos_otorgados)
+        
+        # Sumar puntos y verificar si subió de nivel
+        subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
+        
+        # Guardar información sobre si alcanzó nivel 3 (desbloqueó verificación)
+        self.desbloqueo_verificacion = (perfil.nivel == 3 and subio_nivel)
         
         # Cambiar estado de la siembra
         self.siembra.estado = 'en_verificacion'
@@ -411,6 +501,9 @@ class Zona(models.Model):
     recomendaciones = models.TextField(help_text="Especies recomendadas y consejos")
     activa = models.BooleanField(default=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    auto_generada = models.BooleanField(default=False, help_text="Zona generada automáticamente por concentración de siembras")
+    radio_km = models.DecimalField(max_digits=5, decimal_places=2, default=1.0, help_text="Radio de cobertura en kilómetros")
+    total_siembras = models.IntegerField(default=0, help_text="Total de siembras en esta zona")
     
     class Meta:
         verbose_name = 'Zona de Siembra'
@@ -418,6 +511,41 @@ class Zona(models.Model):
     
     def __str__(self):
         return f"{self.nombre} ({self.tipo_terreno})"
+    
+    def contar_siembras(self):
+        """Cuenta las siembras validadas en el radio de esta zona"""
+        from math import radians, sin, cos, sqrt, atan2
+        
+        count = 0
+        siembras = Siembra.objects.filter(estado='validada')
+        
+        for siembra in siembras:
+            distancia = self.calcular_distancia(float(siembra.latitud), float(siembra.longitud))
+            if distancia <= float(self.radio_km):
+                count += 1
+        
+        self.total_siembras = count
+        self.save()
+        return count
+    
+    def calcular_distancia(self, lat2, lon2):
+        """Calcula la distancia en km usando fórmula de Haversine"""
+        from math import radians, sin, cos, sqrt, atan2
+        
+        R = 6371  # Radio de la Tierra en km
+        
+        lat1 = radians(float(self.latitud))
+        lon1 = radians(float(self.longitud))
+        lat2 = radians(lat2)
+        lon2 = radians(lon2)
+        
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        
+        return R * c
 
 
 # Señal para crear perfil automáticamente

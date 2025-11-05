@@ -230,11 +230,25 @@ class SiembraAdmin(admin.ModelAdmin):
     def validar_siembras(self, request, queryset):
         """Acción para validar múltiples siembras"""
         count = 0
+        usuarios_nivel3 = []
+        
         for siembra in queryset.filter(estado='pendiente'):
-            siembra.validar(request.user)
+            nivel_anterior = siembra.usuario.perfil.nivel
+            subio_nivel = siembra.validar(request.user)
+            
+            # Verificar si alcanzó nivel 3
+            if subio_nivel and siembra.usuario.perfil.nivel == 3:
+                usuarios_nivel3.append(siembra.usuario.username)
+            
             count += 1
         
-        self.message_user(request, f'{count} siembra(s) validada(s) exitosamente.')
+        mensaje = f'{count} siembra(s) validada(s) exitosamente.'
+        
+        # Agregar mensaje sobre nuevos verificadores
+        if usuarios_nivel3:
+            mensaje += f' 🎉 ¡{", ".join(usuarios_nivel3)} alcanzó nivel 3 y ahora puede verificar árboles!'
+        
+        self.message_user(request, mensaje)
     validar_siembras.short_description = "✅ Validar siembras seleccionadas"
     
     def rechazar_siembras(self, request, queryset):

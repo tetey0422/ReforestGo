@@ -276,6 +276,97 @@
     </div>
     {% endif %}
 
+    <!-- Después de la sección de impacto ambiental personal -->
+    <p style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">
+        <a href="{% url 'reforest:estadisticas_oxigeno' %}" style="text-decoration: none; color: inherit;">
+            💨 Ver estadísticas detalladas de oxígeno →
+        </a>
+    </p>
+
+    <!-- Panel de Verificador para usuarios nivel 3+ -->
+    {% if perfil.nivel >= 3 or perfil.rol == 'verificador' or perfil.rol == 'admin' %}
+    <div style="background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%); 
+                color: white; 
+                padding: 2rem; 
+                border-radius: 20px; 
+                margin-top: 2rem;
+                box-shadow: 0 10px 40px rgba(255,165,0,0.3);">
+        <h3 style="margin-bottom: 1rem; font-size: 1.8rem;">🔍 Panel de Verificador</h3>
+        <p style="margin-bottom: 1.5rem; opacity: 0.95; font-size: 1.1rem;">
+            {% if perfil.nivel >= 3 %}
+                ¡Felicidades! Al alcanzar el nivel 3, ahora puedes verificar árboles plantados por otros usuarios y ganar puntos adicionales.
+            {% else %}
+                Como verificador, puedes ganar puntos adicionales verificando árboles plantados por otros usuarios.
+            {% endif %}
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+            <a href="{% url 'reforest:mapa_verificacion' %}" 
+               style="display: inline-block; 
+                      padding: 0.8rem 1.5rem; 
+                      background: white; 
+                      color: #FF8C00; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      font-weight: 600;
+                      transition: transform 0.2s;">
+                🗺️ Buscar Árboles para Verificar
+            </a>
+            <a href="{% url 'reforest:mis_verificaciones' %}" 
+               style="display: inline-block; 
+                      padding: 0.8rem 1.5rem; 
+                      background: rgba(255,255,255,0.2); 
+                      color: white; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      font-weight: 600;
+                      border: 2px solid white;
+                      transition: transform 0.2s;">
+                📋 Ver Mis Verificaciones
+            </a>
+        </div>
+        
+        <!-- Estadísticas de verificador -->
+        <div style="display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                    gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ perfil.verificaciones_realizadas }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Realizadas</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ perfil.verificaciones_aprobadas }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Aprobadas</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ perfil.puntos_verificacion }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Puntos Ganados</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">
+                    {% if perfil.verificaciones_realizadas > 0 %}
+                        {% widthratio perfil.verificaciones_aprobadas perfil.verificaciones_realizadas 100 %}
+                    {% else %}
+                        0
+                    {% endif %}%
+                </div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Tasa Aprobación</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="avatars-section">
         <h3>Avatares</h3>
         <p style="color: #666; margin-bottom: 1rem;">Selecciona tu avatar favorito (desbloquea mas subiendo de nivel)

@@ -355,11 +355,21 @@
 
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'reforest:mis_siembras' %}">🌳 Mis Siembras</a></li>
+                <li><a href="{% url 'reforest:estadisticas_oxigeno' %}">💨 Mi Impacto</a></li>
                 <li><a href="{% url 'reforest:ranking' %}">🏆 Ranking</a></li>
+
+                <!-- Enlaces para verificadores (usuarios nivel 3+ o con rol especial) -->
+                {% if user.perfil.nivel >= 3 or user.perfil.rol == 'verificador' or user.perfil.rol == 'admin' or user.is_staff %}
+                <li><a href="{% url 'reforest:mapa_verificacion' %}" style="color: #FFA500;">🔍 Verificar Árboles</a></li>
+                <li><a href="{% url 'reforest:mis_verificaciones' %}">📋 Mis Verificaciones</a></li>
+                {% endif %}
+
                 <li><a href="{% url 'reforest:registrar_siembra' %}" class="btn-primary">📸 Registrar Siembra</a></li>
 
+                <!-- Panel de admin para staff -->
                 {% if user.is_staff %}
-                <li><a href="/admin/">⚙️ Admin</a></li>
+                <li><a href="{% url 'reforest:admin_verificaciones' %}" style="color: #dc3545;">⚙️ Panel Verificaciones</a></li>
+                <li><a href="/admin/">⚙️ Admin Django</a></li>
                 {% endif %}
 
                 <li class="navbar-user">

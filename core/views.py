@@ -18,8 +18,9 @@ from django.contrib.auth.models import User
 # ========== HELPERS ==========
 
 def es_verificador(user):
-    """Verifica si el usuario tiene rol de verificador o admin"""
-    return user.perfil.rol in ['verificador', 'admin'] or user.is_staff
+    """Verifica si el usuario tiene rol de verificador, admin o es nivel 3+"""
+    # Los usuarios nivel 3 o superior automáticamente pueden verificar
+    return user.perfil.nivel >= 3 or user.perfil.rol in ['verificador', 'admin'] or user.is_staff
 
 
 # ========== VISTAS PÚBLICAS ==========
@@ -76,6 +77,17 @@ def registro(request):
 def perfil(request):
     """Vista del perfil del usuario"""
     perfil = request.user.perfil
+    
+    # Mostrar mensaje de bienvenida para nuevos verificadores (nivel 3+)
+    if perfil.nivel >= 3 and perfil.verificaciones_realizadas == 0:
+        # Solo mostrar el mensaje si no ha verificado nada aún
+        if not request.session.get(f'mensaje_verificador_mostrado_{request.user.id}'):
+            messages.info(
+                request,
+                '🎉 ¡Felicidades! Has alcanzado el Nivel 3. Ahora puedes verificar árboles plantados por otros usuarios '
+                'y ganar puntos adicionales. Visita el "Mapa de Verificación" para comenzar.'
+            )
+            request.session[f'mensaje_verificador_mostrado_{request.user.id}'] = True
     
     # Estadísticas del usuario
     total_siembras = request.user.siembras.filter(estado='validada').count()
@@ -218,42 +230,79 @@ def cambiar_avatar(request, avatar_id):
 @login_required
 @user_passes_test(es_verificador, login_url='reforest:perfil')
 def mapa_verificacion(request):
-    """Mapa con árboles pendientes de verificación"""
+    """Mapa con árboles pendientes de verificación ordenados por distancia"""
     import json
+    from math import radians, sin, cos, sqrt, atan2
     
-    # Obtener ubicación del usuario (opcional)
+    def calcular_distancia(lat1, lon1, lat2, lon2):
+        """Calcula distancia en km usando Haversine"""
+        R = 6371
+        lat1_rad = radians(lat1)
+        lon1_rad = radians(lon1)
+        lat2_rad = radians(lat2)
+        lon2_rad = radians(lon2)
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        a = sin(dlat/2)**2 + cos(lat1_rad) * cos(lat2_rad) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        return R * c
+    
+    # Obtener ubicación del usuario
     user_lat = request.GET.get('lat')
     user_lng = request.GET.get('lng')
     
-    # Obtener siembras pendientes de verificación
+    # Obtener siembras pendientes de verificación (excluir propias)
     siembras_pendientes = Siembra.objects.filter(
         estado='pendiente'
+    ).exclude(
+        usuario=request.user
     ).select_related('usuario')
     
-    # Si hay ubicación, ordenar por cercanía (simplificado)
-    if user_lat and user_lng:
-        # En producción usarías una query más eficiente con PostGIS
-        siembras_pendientes = siembras_pendientes[:50]
-    else:
-        siembras_pendientes = siembras_pendientes[:50]
-    
-    # Convertir a JSON para el mapa
-    siembras_data = [
-        {
-            'id': s.id,
-            'lat': float(s.latitud),
-            'lng': float(s.longitud),
-            'especie': s.especie or 'No especificada',
-            'usuario': s.usuario.username,
-            'fecha': s.fecha_siembra.strftime('%d/%m/%Y'),
-            'foto_url': s.foto.url,
+    # Convertir a lista con distancias
+    siembras_list = []
+    for siembra in siembras_pendientes:
+        siembra_data = {
+            'id': siembra.id,
+            'lat': float(siembra.latitud),
+            'lng': float(siembra.longitud),
+            'especie': siembra.especie or 'No especificada',
+            'usuario': siembra.usuario.username,
+            'fecha': siembra.fecha_siembra.strftime('%d/%m/%Y'),
+            'foto_url': siembra.foto.url,
+            'descripcion': siembra.descripcion or 'Sin descripción',
+            'distancia': None,
+            'distancia_texto': 'Ubicación no disponible'
         }
-        for s in siembras_pendientes
-    ]
+        
+        # Calcular distancia si hay ubicación del usuario
+        if user_lat and user_lng:
+            try:
+                distancia_km = calcular_distancia(
+                    float(user_lat), float(user_lng),
+                    float(siembra.latitud), float(siembra.longitud)
+                )
+                siembra_data['distancia'] = round(distancia_km, 2)
+                
+                if distancia_km < 1:
+                    siembra_data['distancia_texto'] = f"{int(distancia_km * 1000)} metros"
+                else:
+                    siembra_data['distancia_texto'] = f"{distancia_km:.1f} km"
+            except:
+                pass
+        
+        siembras_list.append(siembra_data)
+    
+    # Ordenar por distancia (los más cercanos primero)
+    if user_lat and user_lng:
+        siembras_list.sort(key=lambda x: x['distancia'] if x['distancia'] is not None else float('inf'))
     
     context = {
-        'siembras': json.dumps(siembras_data),
-        'total_pendientes': len(siembras_data),
+        'siembras': json.dumps(siembras_list),
+        'siembras_lista': siembras_list,  # Para mostrar en la lista
+        'total_pendientes': len(siembras_list),
+        'tiene_ubicacion': bool(user_lat and user_lng),
+        'user_lat': user_lat,
+        'user_lng': user_lng,
     }
     return render(request, 'mapa_verificacion.html', context)
 
@@ -398,10 +447,15 @@ def revisar_verificacion(request, verificacion_id):
         
         if accion == 'aprobar':
             verificacion.aprobar(request.user)
-            messages.success(
-                request,
-                f'✅ Verificación aprobada. {verificacion.puntos_otorgados} puntos otorgados a {verificacion.verificador.username}'
-            )
+            
+            # Mensaje de aprobación
+            mensaje = f'✅ Verificación aprobada. {verificacion.puntos_otorgados} puntos otorgados a {verificacion.verificador.username}'
+            
+            # Verificar si el verificador alcanzó nivel 3
+            if hasattr(verificacion, 'desbloqueo_verificacion') and verificacion.desbloqueo_verificacion:
+                mensaje += f' 🎉 ¡{verificacion.verificador.username} alcanzó el Nivel 3 y ahora puede verificar árboles!'
+            
+            messages.success(request, mensaje)
         elif accion == 'rechazar':
             verificacion.rechazar(request.user, notas)
             messages.info(request, f'❌ Verificación rechazada.')
