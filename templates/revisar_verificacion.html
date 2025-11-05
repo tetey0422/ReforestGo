@@ -1,0 +1,699 @@
+{% extends 'base.html' %}
+
+{% block title %}Revisar Verificación #{{ verificacion.id }} - Admin - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .review-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .review-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .review-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .review-header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .review-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .info-card h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.6rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-bottom: 2px solid #f0f0f0;
+        padding-bottom: 1rem;
+    }
+    
+    .image-section {
+        margin-bottom: 1.5rem;
+    }
+    
+    .image-label {
+        font-weight: 600;
+        color: #666;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .verification-image {
+        width: 100%;
+        height: 350px;
+        object-fit: cover;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: transform 0.3s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        margin-bottom: 1rem;
+    }
+    
+    .verification-image:hover {
+        transform: scale(1.02);
+    }
+    
+    .image-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .info-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: center;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .info-value {
+        color: #333;
+        text-align: right;
+        font-weight: 500;
+    }
+    
+    .user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+    }
+    
+    .user-avatar {
+        font-size: 1.8rem;
+    }
+    
+    .distancia-alert {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .distancia-alert.warning {
+        background: linear-gradient(135deg, #FFA500 0%, #FF8C00 100%);
+        box-shadow: 0 5px 20px rgba(255, 165, 0, 0.3);
+    }
+    
+    .distancia-alert.danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        box-shadow: 0 5px 20px rgba(220, 53, 69, 0.3);
+    }
+    
+    .distancia-value {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .distancia-label {
+        font-size: 1.3rem;
+        opacity: 0.95;
+    }
+    
+    .puntos-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .puntos-breakdown {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+    }
+    
+    .puntos-breakdown h3 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+    
+    .punto-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #dee2e6;
+        align-items: center;
+    }
+    
+    .punto-item:last-child {
+        border-bottom: none;
+        margin-top: 1rem;
+        padding-top: 1.5rem;
+        border-top: 3px solid #4CAF50;
+        font-weight: 600;
+        font-size: 1.2rem;
+        color: #4CAF50;
+    }
+    
+    .punto-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .punto-value {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .notes-box {
+        background: #e3f2fd;
+        padding: 1.5rem;
+        border-radius: 15px;
+        border-left: 4px solid #2196F3;
+        margin-top: 1.5rem;
+    }
+    
+    .notes-box h4 {
+        color: #1565c0;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .notes-box p {
+        color: #0d47a1;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .map-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.8rem 1.5rem;
+        background: #2196F3;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        margin-top: 0.5rem;
+    }
+    
+    .map-button:hover {
+        background: #1976D2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    }
+    
+    .action-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .action-section h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 2rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    
+    .form-group textarea {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+        transition: border-color 0.3s;
+    }
+    
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-help {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 1.2rem 2rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .btn:hover {
+        transform: translateY(-3px);
+    }
+    
+    .btn-approve {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-approve:hover {
+        box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+    }
+    
+    .btn-reject {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 5px 20px rgba(220, 53, 69, 0.3);
+    }
+    
+    .btn-reject:hover {
+        box-shadow: 0 8px 30px rgba(220, 53, 69, 0.4);
+    }
+    
+    .alert {
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        border-left: 4px solid;
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .alert-warning {
+        background: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
+    }
+    
+    .alert-icon {
+        font-size: 1.5rem;
+    }
+    
+    .comparison-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    .comparison-item {
+        text-align: center;
+    }
+    
+    .comparison-item h3 {
+        color: #667eea;
+        margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 1024px) {
+        .review-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .image-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+        
+        .comparison-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <div class="review-header">
+        <h1>📋 Revisar Verificación #{{ verificacion.id }}</h1>
+        <p>Analiza cuidadosamente la información y decide si aprobar o rechazar esta verificación</p>
+    </div>
+    
+    <!-- Alerta de distancia -->
+    {% with dist=distancia %}
+    <div class="distancia-alert {% if dist < 20 %}{% elif dist < 50 %}warning{% else %}danger{% endif %}">
+        <div class="distancia-value">{{ dist|floatformat:2 }}m</div>
+        <div class="distancia-label">
+            {% if dist < 20 %}
+                ✅ Excelente Precisión - Bonus +30 pts aplicable
+            {% elif dist < 50 %}
+                ⚠️ Buena Precisión - Sin bonus de distancia
+            {% else %}
+                ❌ Precisión Baja - Requiere revisión manual detallada
+            {% endif %}
+        </div>
+    </div>
+    {% endwith %}
+    
+    {% if distancia >= 50 %}
+    <div class="alert alert-warning">
+        <span class="alert-icon">⚠️</span>
+        <div>
+            <strong>Atención:</strong> La distancia entre la ubicación original y la verificación es mayor a 50 metros. 
+            Revisa cuidadosamente las fotos y el contexto antes de tomar una decisión. Es posible que:
+            <ul style="margin: 0.5rem 0 0 1.5rem;">
+                <li>El GPS tenga imprecisión</li>
+                <li>La foto sea de un árbol diferente</li>
+                <li>El verificador no esté en la ubicación correcta</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Grid de comparación -->
+    <div class="review-grid">
+        <!-- Columna Izquierda: Verificación -->
+        <div class="info-card">
+            <h2>🔍 Información de Verificación</h2>
+            
+            <div class="image-section">
+                <span class="image-label">📸 Foto Principal de Verificación</span>
+                <img src="{{ verificacion.foto_verificacion.url }}" 
+                     alt="Verificación" 
+                     class="verification-image"
+                     onclick="window.open('{{ verificacion.foto_verificacion.url }}', '_blank')"
+                     title="Click para ampliar">
+            </div>
+            
+            {% if verificacion.foto_ubicacion %}
+            <div class="image-section">
+                <span class="image-label">📸 Foto de Ubicación (Bonus +20 pts)</span>
+                <img src="{{ verificacion.foto_ubicacion.url }}" 
+                     alt="Ubicación" 
+                     class="verification-image"
+                     onclick="window.open('{{ verificacion.foto_ubicacion.url }}', '_blank')"
+                     title="Click para ampliar">
+            </div>
+            {% endif %}
+            
+            <ul class="info-list">
+                <li class="info-item">
+                    <span class="info-label">👤 Verificador</span>
+                    <span class="info-value">
+                        <span class="user-badge">
+                            <span class="user-avatar">{{ verificacion.verificador.perfil.avatar_actual.emoji|default:"👤" }}</span>
+                            <div>
+                                <strong>{{ verificacion.verificador.get_full_name|default:verificacion.verificador.username }}</strong><br>
+                                <small style="color: #999;">@{{ verificacion.verificador.username }}</small>
+                            </div>
+                        </span>
+                    </span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">📅 Fecha Verificación</span>
+                    <span class="info-value">{{ verificacion.fecha_verificacion|date:"d/m/Y H:i" }}</span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">📍 Coordenadas</span>
+                    <span class="info-value">
+                        {{ verificacion.latitud_verificacion|floatformat:6 }}<br>
+                        {{ verificacion.longitud_verificacion|floatformat:6 }}
+                        <a href="https://www.google.com/maps?q={{ verificacion.latitud_verificacion }},{{ verificacion.longitud_verificacion }}" 
+                           target="_blank" 
+                           class="map-button">
+                            📍 Ver en Mapa
+                        </a>
+                    </span>
+                </li>
+            </ul>
+            
+            {% if verificacion.notas_verificador %}
+            <div class="notes-box">
+                <h4>📝 Notas del Verificador</h4>
+                <p>{{ verificacion.notas_verificador }}</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Columna Derecha: Siembra Original -->
+        <div class="info-card">
+            <h2>🌳 Siembra Original</h2>
+            
+            <div class="image-section">
+                <span class="image-label">📸 Foto Original de la Siembra</span>
+                <img src="{{ verificacion.siembra.foto.url }}" 
+                     alt="Siembra original" 
+                     class="verification-image"
+                     onclick="window.open('{{ verificacion.siembra.foto.url }}', '_blank')"
+                     title="Click para ampliar">
+            </div>
+            
+            <ul class="info-list">
+                <li class="info-item">
+                    <span class="info-label">🆔 ID Siembra</span>
+                    <span class="info-value"><strong>#{{ verificacion.siembra.id }}</strong></span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">👤 Plantado por</span>
+                    <span class="info-value">
+                        <span class="user-badge">
+                            <span class="user-avatar">{{ verificacion.siembra.usuario.perfil.avatar_actual.emoji|default:"🌱" }}</span>
+                            <div>
+                                <strong>{{ verificacion.siembra.usuario.get_full_name|default:verificacion.siembra.usuario.username }}</strong><br>
+                                <small style="color: #999;">@{{ verificacion.siembra.usuario.username }}</small>
+                            </div>
+                        </span>
+                    </span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">🌿 Especie</span>
+                    <span class="info-value">{{ verificacion.siembra.especie|default:"No especificada" }}</span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">📅 Fecha Siembra</span>
+                    <span class="info-value">{{ verificacion.siembra.fecha_siembra|date:"d/m/Y" }}</span>
+                </li>
+                
+                <li class="info-item">
+                    <span class="info-label">📍 Coordenadas</span>
+                    <span class="info-value">
+                        {{ verificacion.siembra.latitud|floatformat:6 }}<br>
+                        {{ verificacion.siembra.longitud|floatformat:6 }}
+                        <a href="https://www.google.com/maps?q={{ verificacion.siembra.latitud }},{{ verificacion.siembra.longitud }}" 
+                           target="_blank" 
+                           class="map-button">
+                            📍 Ver en Mapa
+                        </a>
+                    </span>
+                </li>
+            </ul>
+            
+            {% if verificacion.siembra.descripcion %}
+            <div class="notes-box">
+                <h4>📝 Descripción de la Siembra</h4>
+                <p>{{ verificacion.siembra.descripcion }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Desglose de Puntos -->
+    <div class="puntos-card">
+        <div class="puntos-breakdown">
+            <h3>💰 Cálculo de Puntos a Otorgar</h3>
+            <div class="punto-item">
+                <span class="punto-label">
+                    <span>🎯</span>
+                    Puntos base por verificación
+                </span>
+                <span class="punto-value">50 pts</span>
+            </div>
+            <div class="punto-item">
+                <span class="punto-label">
+                    <span>📍</span>
+                    Bonus por precisión (&lt; 20 metros)
+                </span>
+                <span class="punto-value">{% if distancia < 20 %}+30 pts ✅{% else %}0 pts{% endif %}</span>
+            </div>
+            <div class="punto-item">
+                <span class="punto-label">
+                    <span>📸</span>
+                    Bonus por foto adicional de ubicación
+                </span>
+                <span class="punto-value">{% if verificacion.foto_ubicacion %}+20 pts ✅{% else %}0 pts{% endif %}</span>
+            </div>
+            <div class="punto-item">
+                <span class="punto-label">💎 TOTAL A OTORGAR</span>
+                <span class="punto-value">{{ verificacion.calcular_puntos }} pts</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formulario de Decisión -->
+    <div class="action-section">
+        <h2>✅ ❌ Tomar Decisión sobre la Verificación</h2>
+        
+        <form method="post" id="review-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="notas">📝 Notas administrativas (opcional)</label>
+                <textarea id="notas" 
+                          name="notas" 
+                          placeholder="Agrega observaciones sobre esta verificación. Estas notas serán visibles para el verificador si rechazas la verificación."></textarea>
+                <p class="form-help">
+                    💡 Si rechazas la verificación, explica la razón para que el verificador pueda mejorar en futuras verificaciones.
+                </p>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="submit" name="accion" value="aprobar" class="btn btn-approve" id="btn-aprobar">
+                    <span>✅</span>
+                    <span>Aprobar Verificación</span>
+                </button>
+                <button type="submit" name="accion" value="rechazar" class="btn btn-reject" id="btn-rechazar">
+                    <span>❌</span>
+                    <span>Rechazar Verificación</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Confirmación antes de aprobar o rechazar (versión segura)
+    (function(){
+        // Obtener valores renderizados por Django de forma segura
+        var puntosStr = "{{ puntos|default:0|escapejs }}";
+        // Eliminar posibles separadores de miles y convertir a número
+        var puntos = Number(puntosStr.toString().replace(/,/g, '')) || 0;
+        var username = "{{ verificacion.verificador.username|escapejs }}";
+
+        var btnAprobar = document.getElementById('btn-aprobar');
+        if (btnAprobar) {
+            btnAprobar.addEventListener('click', function(e) {
+                var mensaje = "¿Estás seguro de APROBAR esta verificación?\n\n" +
+                              "✅ Se otorgarán " + puntos + " puntos a @" + username + "\n" +
+                              "✅ El árbol pasará a estado \"En Verificación\"\n\n" +
+                              "Esta acción no se puede deshacer fácilmente.";
+
+                if (!confirm(mensaje)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        var btnRechazar = document.getElementById('btn-rechazar');
+        if (btnRechazar) {
+            btnRechazar.addEventListener('click', function(e) {
+                var notas = document.getElementById('notas').value.trim();
+
+                if (!notas) {
+                    alert('⚠️ Por favor, agrega una nota explicando la razón del rechazo.');
+                    e.preventDefault();
+                    return;
+                }
+
+                var mensaje = "¿Estás seguro de RECHAZAR esta verificación?\n\n" +
+                              "❌ No se otorgarán puntos\n" +
+                              "❌ El árbol volverá a estado \"Pendiente\"\n" +
+                              "📝 Se enviará tu nota al verificador\n\n" +
+                              "Esta acción no se puede deshacer fácilmente.";
+
+                if (!confirm(mensaje)) {
+                    e.preventDefault();
+                }
+            });
+        }
+
+        // Abrir imágenes en nueva pestaña con click (aplicar cursor)
+        document.querySelectorAll('.verification-image').forEach(function(img) {
+            img.style.cursor = 'pointer';
+        });
+    })();
+</script>
+{% endblock %}

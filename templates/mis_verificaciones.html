@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Verificaciones - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .verificaciones-header {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .verificaciones-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stat-box {
+        background: #f5f5f5;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .stat-box .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .stat-box .label {
+        color: #666;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .verificaciones-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+    
+    .verificacion-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    
+    .verificacion-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .verificacion-images {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+    }
+    
+    .verificacion-image {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .verificacion-image:hover {
+        transform: scale(1.05);
+    }
+    
+    .verificacion-image.single {
+        grid-column: 1 / -1;
+        height: 250px;
+    }
+    
+    .verificacion-content {
+        padding: 1.5rem;
+    }
+    
+    .verificacion-status {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .verificacion-status.aprobada {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .verificacion-status.pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .verificacion-status.rechazada {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .verificacion-info {
+        margin-top: 1rem;
+    }
+    
+    .verificacion-info p {
+        margin: 0.5rem 0;
+        color: #666;
+        font-size: 0.95rem;
+    }
+    
+    .verificacion-info strong {
+        color: #333;
+    }
+    
+    .distancia-badge {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+    
+    .distancia-badge.excelente {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .distancia-badge.buena {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .distancia-badge.revisar {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .verificacion-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    .verificacion-date {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    
+    .verificacion-points {
+        color: #4CAF50;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .notas-rechazadas {
+        background: #fff3cd;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #ffc107;
+        margin-top: 1rem;
+    }
+    
+    .notas-rechazadas strong {
+        color: #856404;
+    }
+    
+    .notas-rechazadas p {
+        color: #856404;
+        margin: 0.5rem 0 0 0;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .empty-state .emoji {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h2 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state p {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-primary {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 3rem;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .pagination a:hover {
+        border-color: #4CAF50;
+        background: #f0f8f0;
+    }
+    
+    .pagination .current {
+        background: #4CAF50;
+        color: white;
+        border-color: #4CAF50;
+    }
+    
+    @media (max-width: 768px) {
+        .verificaciones-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stats-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verificaciones-header">
+    <h1>🔍 Mis Verificaciones</h1>
+    <p style="color: #666;">Historial completo de todas las verificaciones que has realizado</p>
+    
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="number">{{ stats.total }}</div>
+            <div class="label">Total Realizadas</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.aprobadas }}</div>
+            <div class="label">✅ Aprobadas</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.pendientes }}</div>
+            <div class="label">⏳ Pendientes</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.rechazadas }}</div>
+            <div class="label">❌ Rechazadas</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.puntos_ganados }}</div>
+            <div class="label">💰 Puntos Ganados</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">{{ stats.tasa_aprobacion|floatformat:1 }}%</div>
+            <div class="label">📊 Tasa Aprobación</div>
+        </div>
+    </div>
+</div>
+
+{% if verificaciones %}
+<div class="verificaciones-grid">
+    {% for verificacion in verificaciones %}
+    <div class="verificacion-card">
+        <div class="verificacion-images">
+            {% if verificacion.foto_ubicacion %}
+                <img src="{{ verificacion.foto_verificacion.url }}" 
+                     alt="Verificación principal" 
+                     class="verificacion-image"
+                     onclick="window.open('{{ verificacion.foto_verificacion.url }}', '_blank')"
+                     title="Click para ampliar">
+                <img src="{{ verificacion.foto_ubicacion.url }}" 
+                     alt="Foto de ubicación" 
+                     class="verificacion-image"
+                     onclick="window.open('{{ verificacion.foto_ubicacion.url }}', '_blank')"
+                     title="Click para ampliar">
+            {% else %}
+                <img src="{{ verificacion.foto_verificacion.url }}" 
+                     alt="Verificación" 
+                     class="verificacion-image single"
+                     onclick="window.open('{{ verificacion.foto_verificacion.url }}', '_blank')"
+                     title="Click para ampliar">
+            {% endif %}
+        </div>
+        
+        <div class="verificacion-content">
+            <span class="verificacion-status {{ verificacion.estado }}">
+                {% if verificacion.estado == 'aprobada' %}✅ Aprobada
+                {% elif verificacion.estado == 'pendiente' %}⏳ Pendiente de Revisión
+                {% else %}❌ Rechazada{% endif %}
+            </span>
+            
+            <div class="verificacion-info">
+                <p><strong>🌳 Siembra verificada:</strong> #{{ verificacion.siembra.id }}</p>
+                <p><strong>👤 Árbol de:</strong> {{ verificacion.siembra.usuario.username }}</p>
+                <p><strong>🌿 Especie:</strong> {{ verificacion.siembra.especie|default:"No especificada" }}</p>
+                <p>
+                    <strong>📍 Precisión:</strong> {{ verificacion.calcular_distancia|floatformat:0 }}m
+                    {% with dist=verificacion.calcular_distancia %}
+                        <span class="distancia-badge {% if dist < 20 %}excelente{% elif dist < 50 %}buena{% else %}revisar{% endif %}">
+                            {% if dist < 20 %}Excelente
+                            {% elif dist < 50 %}Buena
+                            {% else %}Regular{% endif %}
+                        </span>
+                    {% endwith %}
+                </p>
+                
+                {% if verificacion.notas_verificador %}
+                <p><strong>📝 Tus notas:</strong> {{ verificacion.notas_verificador|truncatewords:20 }}</p>
+                {% endif %}
+                
+                {% if verificacion.estado == 'rechazada' and verificacion.notas_admin %}
+                <div class="notas-rechazadas">
+                    <strong>⚠️ Razón del rechazo:</strong>
+                    <p>{{ verificacion.notas_admin }}</p>
+                </div>
+                {% endif %}
+                
+                {% if verificacion.estado == 'aprobada' and verificacion.revisada_por %}
+                <p style="color: #28a745;">
+                    <strong>✓ Aprobada por:</strong> {{ verificacion.revisada_por.username }}
+                    {% if verificacion.fecha_revision %}
+                    <br><small>{{ verificacion.fecha_revision|date:"d/m/Y H:i" }}</small>
+                    {% endif %}
+                </p>
+                {% endif %}
+            </div>
+            
+            <div class="verificacion-meta">
+                <span class="verificacion-date">
+                    📅 {{ verificacion.fecha_verificacion|date:"d/m/Y" }}<br>
+                    <small>{{ verificacion.fecha_verificacion|date:"H:i" }}</small>
+                </span>
+                {% if verificacion.estado == 'aprobada' %}
+                <span class="verificacion-points">+{{ verificacion.puntos_otorgados }} pts</span>
+                {% elif verificacion.estado == 'pendiente' %}
+                <span style="color: #856404; font-weight: 600;">⏳ En revisión</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if verificaciones.has_other_pages %}
+<div class="pagination">
+    {% if verificaciones.has_previous %}
+    <a href="?page={{ verificaciones.previous_page_number }}">← Anterior</a>
+    {% endif %}
+    
+    <span class="current">Página {{ verificaciones.number }} de {{ verificaciones.paginator.num_pages }}</span>
+    
+    {% if verificaciones.has_next %}
+    <a href="?page={{ verificaciones.next_page_number }}">Siguiente →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+    <div class="emoji">🔍</div>
+    <h2>No has realizado verificaciones</h2>
+    <p>Comienza a verificar árboles para ganar puntos adicionales y ayudar a validar las siembras de la comunidad.</p>
+    <a href="{% url 'reforest:mapa_verificacion' %}" class="btn-primary">
+        🗺️ Ver Árboles por Verificar
+    </a>
+</div>
+{% endif %}
+{% endblock %}

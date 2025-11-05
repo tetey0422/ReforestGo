@@ -410,10 +410,13 @@ def revisar_verificacion(request, verificacion_id):
     
     # Calcular distancia entre siembra y verificación
     distancia = verificacion.calcular_distancia()
+    # Calcular puntos que se otorgarán (entero)
+    puntos = verificacion.calcular_puntos()
     
     context = {
         'verificacion': verificacion,
         'distancia': distancia,
+        'puntos': puntos,
     }
     return render(request, 'revisar_verificacion.html', context)
 

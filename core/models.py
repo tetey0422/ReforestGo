@@ -182,7 +182,7 @@ class Siembra(models.Model):
         rate = rate_data[stage]
         
         # Calcular oxígeno (más edad = más oxígeno hasta cierto punto)
-        factor_edad = min(years, 1.0)  # Máximo factor de 1.0
+        factor_edad = min(years / 10, 1.0)  # Alcanza máximo en 10 años
         self.oxigeno_generado = Decimal(rate * factor_edad).quantize(Decimal('0.01'))
         
         # CO2 absorbido (aproximadamente 1.5 kg CO2 por cada kg O2)

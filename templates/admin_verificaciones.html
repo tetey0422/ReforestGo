@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block title %}Panel de Verificaciones - Admin - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .admin-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .admin-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .admin-header p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+    }
+    
+    .stats-dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        transition: transform 0.3s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 0.95rem;
+    }
+    
+    .filters-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .filters-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-btn {
+        padding: 0.8rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        background: white;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+    
+    .filter-btn:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+    
+    .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .verificaciones-table {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .verificaciones-table table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .verificaciones-table thead {
+        background: #f8f9fa;
+    }
+    
+    .verificaciones-table th {
+        padding: 1.2rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .verificaciones-table td {
+        padding: 1.2rem;
+        border-bottom: 1px solid #f0f0f0;
+        color: #666;
+    }
+    
+    .verificaciones-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .verificacion-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .verificacion-thumb:hover {
+        transform: scale(1.1);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .status-badge.pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-badge.aprobada {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-badge.rechazada {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .distancia-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .distancia-badge.excelente {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .distancia-badge.buena {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .distancia-badge.revisar {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .action-btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: transform 0.2s;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+    
+    .pagination a,
+    .pagination span {
+        padding: 0.8rem 1.2rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+    }
+    
+    .pagination a:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+    
+    .pagination .current {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #666;
+    }
+    
+    .empty-state .emoji {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .user-avatar {
+        font-size: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+        .verificaciones-table {
+            overflow-x: auto;
+        }
+        
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .filter-btn {
+            width: 100%;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-header">
+    <h1>⚙️ Panel de Verificaciones</h1>
+    <p>Revisa y aprueba las verificaciones realizadas por los verificadores</p>
+</div>
+
+<div class="stats-dashboard">
+    <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-number">{{ stats.total }}</div>
+        <div class="stat-label">Total Verificaciones</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-number">{{ stats.pendientes }}</div>
+        <div class="stat-label">Pendientes Revisión</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-number">{{ stats.aprobadas }}</div>
+        <div class="stat-label">Aprobadas</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">❌</div>
+        <div class="stat-number">{{ stats.rechazadas }}</div>
+        <div class="stat-label">Rechazadas</div>
+    </div>
+</div>
+
+<div class="filters-section">
+    <div class="filters-row">
+        <span style="color: #666; font-weight: 600;">Filtrar por estado:</span>
+        <a href="?estado=pendiente" class="filter-btn {% if estado_filter == 'pendiente' %}active{% endif %}">
+            ⏳ Pendientes
+        </a>
+        <a href="?estado=aprobada" class="filter-btn {% if estado_filter == 'aprobada' %}active{% endif %}">
+            ✅ Aprobadas
+        </a>
+        <a href="?estado=rechazada" class="filter-btn {% if estado_filter == 'rechazada' %}active{% endif %}">
+            ❌ Rechazadas
+        </a>
+        <a href="?estado=todas" class="filter-btn {% if estado_filter == 'todas' %}active{% endif %}">
+            📊 Todas
+        </a>
+    </div>
+</div>
+
+{% if verificaciones %}
+<div class="verificaciones-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Verificador</th>
+                <th>Siembra</th>
+                <th>Distancia</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for verificacion in verificaciones %}
+            <tr>
+                <td>
+                    <img src="{{ verificacion.foto_verificacion.url }}" 
+                         alt="Verificación" 
+                         class="verificacion-thumb"
+                         onclick="window.open('{{ verificacion.foto_verificacion.url }}', '_blank')">
+                </td>
+                <td>
+                    <div class="user-info">
+                        <span class="user-avatar">{{ verificacion.verificador.perfil.avatar_actual.emoji|default:"👤" }}</span>
+                        <div>
+                            <strong>{{ verificacion.verificador.get_full_name|default:verificacion.verificador.username }}</strong><br>
+                            <small style="color: #999;">@{{ verificacion.verificador.username }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <strong>Siembra #{{ verificacion.siembra.id }}</strong><br>
+                    <small style="color: #999;">
+                        Por: {{ verificacion.siembra.usuario.username }}<br>
+                        {{ verificacion.siembra.especie|default:"Sin especie" }}
+                    </small>
+                </td>
+                <td>
+                    {% with dist=verificacion.calcular_distancia %}
+                    <span class="distancia-badge {% if dist < 20 %}excelente{% elif dist < 50 %}buena{% else %}revisar{% endif %}">
+                        {{ dist|floatformat:0 }}m
+                    </span>
+                    {% endwith %}
+                </td>
+                <td>
+                    <span class="status-badge {{ verificacion.estado }}">
+                        {% if verificacion.estado == 'pendiente' %}⏳ Pendiente
+                        {% elif verificacion.estado == 'aprobada' %}✅ Aprobada
+                        {% else %}❌ Rechazada{% endif %}
+                    </span>
+                </td>
+                <td>
+                    {{ verificacion.fecha_verificacion|date:"d/m/Y" }}<br>
+                    <small style="color: #999;">{{ verificacion.fecha_verificacion|date:"H:i" }}</small>
+                </td>
+                <td>
+                    {% if verificacion.estado == 'pendiente' %}
+                    <a href="{% url 'reforest:revisar_verificacion' verificacion.id %}" class="action-btn">
+                        📋 Revisar
+                    </a>
+                    {% else %}
+                    <span style="color: #999; font-size: 0.9rem;">
+                        {% if verificacion.estado == 'aprobada' %}
+                            +{{ verificacion.puntos_otorgados }} pts
+                        {% else %}
+                            Revisada
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if verificaciones.has_other_pages %}
+<div class="pagination">
+    {% if verificaciones.has_previous %}
+    <a href="?page={{ verificaciones.previous_page_number }}&estado={{ estado_filter }}">← Anterior</a>
+    {% endif %}
+    
+    <span class="current">Página {{ verificaciones.number }} de {{ verificaciones.paginator.num_pages }}</span>
+    
+    {% if verificaciones.has_next %}
+    <a href="?page={{ verificaciones.next_page_number }}&estado={{ estado_filter }}">Siguiente →</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="verificaciones-table">
+    <div class="empty-state">
+        <div class="emoji">📋</div>
+        <h2>No hay verificaciones</h2>
+        <p>
+            {% if estado_filter == 'pendiente' %}
+            No hay verificaciones pendientes de revisión.
+            {% elif estado_filter == 'todas' %}
+            Aún no se han realizado verificaciones en el sistema.
+            {% else %}
+            No hay verificaciones con el estado "{{ estado_filter }}".
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

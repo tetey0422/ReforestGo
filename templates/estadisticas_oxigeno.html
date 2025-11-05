@@ -300,7 +300,11 @@
                 <td>{{ item.total_oxigeno|floatformat:2 }} kg/año</td>
                 <td>
                     <div class="progress-bar">
-                        <div class="progress-fill" data-pct="{% widthratio item.total_oxigeno oxigeno_total 100 %}">
+                        <div class="progress-fill" data-pct="{% if oxigeno_total > 0 %}
+                            {% widthratio item.total_oxigeno oxigeno_total 100 %}
+                        {% else %}
+                            0
+                        {% endif %}">
                             {% widthratio item.total_oxigeno oxigeno_total 100 %}%
                         </div>
                     </div>
