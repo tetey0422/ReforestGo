@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}Mapa de Verificación - Reforest Go{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
+
+{% block extra_style %}
+<style>
+    .verificacion-header {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .verificacion-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .verificacion-header p {
+        color: #666;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .stat-box {
+        background: #f5f5f5;
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .stat-box .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .stat-box .label {
+        color: #666;
+        margin-top: 0.5rem;
+    }
+    
+    #map {
+        width: 100%;
+        height: 600px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        background: white;
+        margin-bottom: 2rem;
+    }
+    
+    .leaflet-popup-content {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        min-width: 250px;
+    }
+    
+    .popup-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.8rem;
+    }
+    
+    .popup-image {
+        width: 100%;
+        max-height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 0.8rem;
+    }
+    
+    .popup-info {
+        margin: 0.5rem 0;
+        color: #666;
+    }
+    
+    .popup-info strong {
+        color: #333;
+    }
+    
+    .btn-verificar {
+        display: inline-block;
+        width: 100%;
+        padding: 0.8rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 600;
+        margin-top: 0.8rem;
+        transition: transform 0.2s;
+    }
+    
+    .btn-verificar:hover {
+        transform: translateY(-2px);
+    }
+    
+    .info-panel {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .info-panel h3 {
+        color: #4CAF50;
+        margin-bottom: 1rem;
+    }
+    
+    .info-panel ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .info-panel li {
+        padding: 0.8rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-panel li:last-child {
+        border-bottom: none;
+    }
+    
+    .info-panel li::before {
+        content: "✓ ";
+        color: #4CAF50;
+        font-weight: bold;
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verificacion-header">
+    <h1>🔍 Verificación de Árboles</h1>
+    <p>Encuentra árboles cercanos que necesitan verificación y gana puntos</p>
+    
+    <div class="stats-row">
+        <div class="stat-box">
+            <div class="number">{{ total_pendientes }}</div>
+            <div class="label">Árboles por verificar</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">50</div>
+            <div class="label">Puntos base</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">+30</div>
+            <div class="label">Bonus precisión</div>
+        </div>
+        <div class="stat-box">
+            <div class="number">+20</div>
+            <div class="label">Bonus foto extra</div>
+        </div>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<div class="info-panel">
+    <h3>📋 Cómo funciona la verificación</h3>
+    <ul>
+        <li><strong>Encuentra un árbol cercano</strong> en el mapa y visítalo físicamente</li>
+        <li><strong>Toma fotos</strong> del árbol desde diferentes ángulos</li>
+        <li><strong>Verifica la ubicación</strong> usando el GPS de tu dispositivo</li>
+        <li><strong>Envía la verificación</strong> con tus notas</li>
+        <li><strong>Gana puntos</strong> cuando un administrador apruebe tu verificación</li>
+        <li><strong>Bonificaciones:</strong> Precisión de ubicación (+30 pts) y fotos adicionales (+20 pts)</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Datos de siembras desde Django
+    const siembrasData = JSON.parse('{{ siembras|escapejs }}');
+    
+    // Inicializar mapa centrado en Barrancabermeja
+    const map = L.map('map').setView([7.0653, -73.8534], 13);
+    
+    // Añadir capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18,
+    }).addTo(map);
+    
+    // Icono personalizado para árboles pendientes
+    const arbolIcon = L.divIcon({
+        className: 'custom-icon',
+        html: '<div style="background: #FFA500; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; box-shadow: 0 3px 10px rgba(255,165,0,0.5); border: 3px solid white;">🌳</div>',
+        iconSize: [35, 35]
+    });
+    
+    // Añadir marcadores de árboles pendientes
+    siembrasData.forEach(siembra => {
+        const marker = L.marker([siembra.lat, siembra.lng], { icon: arbolIcon }).addTo(map);
+        
+        const popupContent = `
+            <div class="popup-content">
+                <div class="popup-title">🌳 Árbol por verificar</div>
+                ${siembra.foto_url ? `<img src="${siembra.foto_url}" class="popup-image" alt="Foto del árbol">` : ''}
+                <div class="popup-info"><strong>🌿 Especie:</strong> ${siembra.especie}</div>
+                <div class="popup-info"><strong>👤 Plantado por:</strong> ${siembra.usuario}</div>
+                <div class="popup-info"><strong>📅 Fecha:</strong> ${siembra.fecha}</div>
+                <a href="/verificacion/arbol/${siembra.id}/" class="btn-verificar">
+                    🔍 Verificar este árbol
+                </a>
+            </div>
+        `;
+        
+        marker.bindPopup(popupContent, {
+            maxWidth: 300
+        });
+    });
+    
+    // Intentar centrar en la ubicación del usuario
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                
+                // Añadir marcador del usuario
+                const userIcon = L.divIcon({
+                    className: 'custom-icon',
+                    html: '<div style="background: #2196F3; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; box-shadow: 0 2px 8px rgba(33,150,243,0.5); border: 3px solid white;">📍</div>',
+                    iconSize: [30, 30]
+                });
+                
+                L.marker([userLat, userLng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup('<strong>Tu ubicación actual</strong>')
+                    .openPopup();
+                
+                // Centrar mapa en el usuario
+                map.setView([userLat, userLng], 14);
+            },
+            (error) => {
+                console.log('No se pudo obtener la ubicación del usuario');
+            }
+        );
+    }
+    
+    // Si hay árboles, ajustar el zoom para mostrarlos todos
+    if (siembrasData.length > 0) {
+        const bounds = L.latLngBounds(siembrasData.map(s => [s.lat, s.lng]));
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+</script>
+{% endblock %}
+</document_content>

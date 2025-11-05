@@ -1,9 +1,14 @@
+# core/models.py - VERSIÓN ACTUALIZADA CON VERIFICACIÓN Y OXÍGENO
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from PIL import Image
+from datetime import datetime, timedelta
+from decimal import Decimal
 import os
+
 
 class Avatar(models.Model):
     """Avatares desbloqueables según nivel"""
@@ -24,6 +29,12 @@ class Avatar(models.Model):
 
 class Perfil(models.Model):
     """Perfil extendido del usuario con gamificación"""
+    ROLES = [
+        ('usuario', 'Usuario'),
+        ('verificador', 'Verificador'),
+        ('admin', 'Administrador'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
     puntos = models.IntegerField(default=0)
     nivel = models.IntegerField(default=1)
@@ -31,6 +42,14 @@ class Perfil(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     bio = models.TextField(max_length=500, blank=True)
     foto_perfil = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    
+    # Nuevo campo para el rol
+    rol = models.CharField(max_length=20, choices=ROLES, default='usuario')
+    
+    # Estadísticas de verificador
+    verificaciones_realizadas = models.IntegerField(default=0)
+    verificaciones_aprobadas = models.IntegerField(default=0)
+    puntos_verificacion = models.IntegerField(default=0)
     
     class Meta:
         verbose_name = 'Perfil'
@@ -69,7 +88,6 @@ class Perfil(models.Model):
         """Calcula el progreso hacia el siguiente nivel"""
         niveles = {1: 100, 2: 250, 3: 500, 4: 1000, 5: float('inf')}
         
-        # Si ya está en el nivel máximo
         if self.nivel >= 5:
             return 100.0
         
@@ -77,14 +95,282 @@ class Perfil(models.Model):
             puntos_necesarios = niveles[self.nivel]
             puntos_nivel_anterior = niveles.get(self.nivel - 1, 0)
             
-            # Evitar división por cero
             if puntos_necesarios == puntos_nivel_anterior:
                 return 100.0
             
             progreso = ((self.puntos - puntos_nivel_anterior) / (puntos_necesarios - puntos_nivel_anterior)) * 100
-            return max(0.0, min(progreso, 100.0))  # Asegurar que esté entre 0 y 100
+            return max(0.0, min(progreso, 100.0))
         except Exception:
             return 0.0
+    
+    def tasa_aprobacion_verificaciones(self):
+        """Calcula el porcentaje de verificaciones aprobadas"""
+        if self.verificaciones_realizadas == 0:
+            return 100.0
+        return (self.verificaciones_aprobadas / self.verificaciones_realizadas) * 100
+
+
+# Datos de oxígeno por especie (kg O2/año según edad)
+OXYGEN_RATES = {
+    'ceiba': {'joven': 12, 'maduro': 30, 'viejo': 25},
+    'guayacan': {'joven': 10, 'maduro': 25, 'viejo': 22},
+    'roble': {'joven': 15, 'maduro': 35, 'viejo': 30},
+    'saman': {'joven': 18, 'maduro': 40, 'viejo': 35},
+    'caracoli': {'joven': 11, 'maduro': 28, 'viejo': 24},
+    'pino': {'joven': 10, 'maduro': 22, 'viejo': 18},
+    'default': {'joven': 12, 'maduro': 28, 'viejo': 25}
+}
+
+
+class Siembra(models.Model):
+    """Registro de siembras realizadas por usuarios"""
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('en_verificacion', 'En Verificación'),
+        ('validada', 'Validada'),
+        ('rechazada', 'Rechazada'),
+    ]
+    
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='siembras')
+    foto = models.ImageField(upload_to='siembras/%Y/%m/')
+    latitud = models.DecimalField(max_digits=9, decimal_places=6)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6)
+    especie = models.CharField(max_length=100, blank=True)
+    descripcion = models.TextField(max_length=500, blank=True)
+    puntos_otorgados = models.IntegerField(default=20)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    fecha_siembra = models.DateTimeField(auto_now_add=True)
+    validada_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validaciones')
+    fecha_validacion = models.DateTimeField(null=True, blank=True)
+    notas_admin = models.TextField(blank=True)
+    
+    # Nuevos campos para oxígeno
+    oxigeno_generado = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="kg O2/año")
+    co2_absorbido = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="kg CO2/año")
+    ultima_actualizacion_oxigeno = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-fecha_siembra']
+        verbose_name = 'Siembra'
+        verbose_name_plural = 'Siembras'
+    
+    def __str__(self):
+        return f"Siembra de {self.usuario.username} - {self.fecha_siembra.strftime('%d/%m/%Y')}"
+    
+    def calcular_oxigeno(self):
+        """Calcula el oxígeno generado según especie y edad del árbol"""
+        if self.estado != 'validada':
+            self.oxigeno_generado = 0
+            self.co2_absorbido = 0
+            return
+        
+        # Calcular años desde plantación
+        dias_plantado = (datetime.now().date() - self.fecha_siembra.date()).days
+        years = dias_plantado / 365.25
+        
+        # Determinar etapa del árbol
+        if years < 2:
+            stage = 'joven'
+        elif years < 10:
+            stage = 'maduro'
+        else:
+            stage = 'viejo'
+        
+        # Obtener tasa de oxígeno según especie
+        especie_lower = self.especie.lower().strip() if self.especie else 'default'
+        rate_data = OXYGEN_RATES.get(especie_lower, OXYGEN_RATES['default'])
+        rate = rate_data[stage]
+        
+        # Calcular oxígeno (más edad = más oxígeno hasta cierto punto)
+        factor_edad = min(years, 1.0)  # Máximo factor de 1.0
+        self.oxigeno_generado = Decimal(rate * factor_edad).quantize(Decimal('0.01'))
+        
+        # CO2 absorbido (aproximadamente 1.5 kg CO2 por cada kg O2)
+        self.co2_absorbido = (self.oxigeno_generado * Decimal('1.5')).quantize(Decimal('0.01'))
+        self.ultima_actualizacion_oxigeno = datetime.now()
+        self.save()
+    
+    def edad_arbol_dias(self):
+        """Retorna la edad del árbol en días"""
+        return (datetime.now().date() - self.fecha_siembra.date()).days
+    
+    def edad_arbol_texto(self):
+        """Retorna la edad del árbol en formato legible"""
+        dias = self.edad_arbol_dias()
+        if dias < 30:
+            return f"{dias} días"
+        elif dias < 365:
+            meses = dias // 30
+            return f"{meses} mes{'es' if meses > 1 else ''}"
+        else:
+            years = dias // 365
+            return f"{years} año{'s' if years > 1 else ''}"
+    
+    def save(self, *args, **kwargs):
+        """Optimizar imagen antes de guardar"""
+        super().save(*args, **kwargs)
+        
+        if self.foto:
+            try:
+                img = Image.open(self.foto.path)
+                
+                if img.mode in ('RGBA', 'LA', 'P'):
+                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                    rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                    img = rgb_img
+                
+                if img.height > 1200 or img.width > 1200:
+                    img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
+                    img.save(self.foto.path, quality=85, optimize=True)
+            except Exception as e:
+                pass
+    
+    def validar(self, admin_user):
+        """Valida la siembra y otorga puntos al usuario"""
+        from django.utils import timezone
+        
+        self.estado = 'validada'
+        self.validada_por = admin_user
+        self.fecha_validacion = timezone.now()
+        self.save()
+        
+        # Calcular oxígeno después de validar
+        self.calcular_oxigeno()
+        
+        # NO otorgar puntos si el usuario es staff o superuser
+        if self.usuario.is_staff or self.usuario.is_superuser:
+            return False
+        
+        perfil = self.usuario.perfil
+        subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
+        
+        return subio_nivel
+
+
+class Verificacion(models.Model):
+    """Verificaciones realizadas por verificadores"""
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobada', 'Aprobada'),
+        ('rechazada', 'Rechazada'),
+    ]
+    
+    siembra = models.ForeignKey(Siembra, on_delete=models.CASCADE, related_name='verificaciones')
+    verificador = models.ForeignKey(User, on_delete=models.CASCADE, related_name='verificaciones_realizadas')
+    
+    # Fotos de verificación
+    foto_verificacion = models.ImageField(upload_to='verificaciones/%Y/%m/')
+    foto_ubicacion = models.ImageField(upload_to='verificaciones/%Y/%m/', null=True, blank=True)
+    
+    # Ubicación de la verificación
+    latitud_verificacion = models.DecimalField(max_digits=9, decimal_places=6)
+    longitud_verificacion = models.DecimalField(max_digits=9, decimal_places=6)
+    
+    notas_verificador = models.TextField(max_length=500, blank=True)
+    fecha_verificacion = models.DateTimeField(auto_now_add=True)
+    
+    # Estado de la verificación
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
+    
+    # Revisión por admin
+    revisada_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verificaciones_revisadas')
+    fecha_revision = models.DateTimeField(null=True, blank=True)
+    notas_admin = models.TextField(blank=True)
+    
+    # Puntos otorgados
+    puntos_otorgados = models.IntegerField(default=0)
+    
+    class Meta:
+        verbose_name = 'Verificación'
+        verbose_name_plural = 'Verificaciones'
+        ordering = ['-fecha_verificacion']
+    
+    def __str__(self):
+        return f"Verificación de {self.verificador.username} - Siembra #{self.siembra.id}"
+    
+    def calcular_distancia(self):
+        """Calcula la distancia entre la siembra y la verificación en metros"""
+        from math import radians, sin, cos, sqrt, atan2
+        
+        # Radio de la Tierra en metros
+        R = 6371000
+        
+        lat1 = radians(float(self.siembra.latitud))
+        lon1 = radians(float(self.siembra.longitud))
+        lat2 = radians(float(self.latitud_verificacion))
+        lon2 = radians(float(self.longitud_verificacion))
+        
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        
+        distance = R * c
+        return round(distance, 2)
+    
+    def calcular_puntos(self):
+        """Calcula los puntos a otorgar según calidad de verificación"""
+        PUNTOS_BASE = 50
+        BONUS_PRECISION = 30  # Bonus por estar cerca
+        BONUS_FOTOS_EXTRA = 20  # Bonus por foto adicional
+        
+        puntos = PUNTOS_BASE
+        
+        # Bonus por precisión de ubicación (< 20 metros)
+        distancia = self.calcular_distancia()
+        if distancia < 20:
+            puntos += BONUS_PRECISION
+        
+        # Bonus por foto adicional de ubicación
+        if self.foto_ubicacion:
+            puntos += BONUS_FOTOS_EXTRA
+        
+        return puntos
+    
+    def aprobar(self, admin_user):
+        """Aprueba la verificación y otorga puntos"""
+        from django.utils import timezone
+        
+        self.estado = 'aprobada'
+        self.revisada_por = admin_user
+        self.fecha_revision = timezone.now()
+        
+        # Calcular y otorgar puntos
+        self.puntos_otorgados = self.calcular_puntos()
+        
+        # Actualizar perfil del verificador
+        perfil = self.verificador.perfil
+        perfil.verificaciones_realizadas += 1
+        perfil.verificaciones_aprobadas += 1
+        perfil.puntos_verificacion += self.puntos_otorgados
+        perfil.sumar_puntos(self.puntos_otorgados)
+        
+        # Cambiar estado de la siembra
+        self.siembra.estado = 'en_verificacion'
+        self.siembra.save()
+        
+        self.save()
+    
+    def rechazar(self, admin_user, razon=''):
+        """Rechaza la verificación"""
+        from django.utils import timezone
+        
+        self.estado = 'rechazada'
+        self.revisada_por = admin_user
+        self.fecha_revision = timezone.now()
+        self.notas_admin = razon
+        
+        # Actualizar estadísticas del verificador
+        perfil = self.verificador.perfil
+        perfil.verificaciones_realizadas += 1
+        perfil.save()
+        
+        # La siembra vuelve a pendiente
+        self.siembra.estado = 'pendiente'
+        self.siembra.save()
+        
+        self.save()
 
 
 class Vivero(models.Model):
@@ -132,92 +418,6 @@ class Zona(models.Model):
     
     def __str__(self):
         return f"{self.nombre} ({self.tipo_terreno})"
-
-
-class Siembra(models.Model):
-    """Registro de siembras realizadas por usuarios"""
-    ESTADO_CHOICES = [
-        ('pendiente', 'Pendiente'),
-        ('validada', 'Validada'),
-        ('rechazada', 'Rechazada'),
-    ]
-    
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='siembras')
-    foto = models.ImageField(upload_to='siembras/%Y/%m/')
-    latitud = models.DecimalField(max_digits=9, decimal_places=6)
-    longitud = models.DecimalField(max_digits=9, decimal_places=6)
-    especie = models.CharField(max_length=100, blank=True)
-    descripcion = models.TextField(max_length=500, blank=True)
-    puntos_otorgados = models.IntegerField(default=20)
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
-    fecha_siembra = models.DateTimeField(auto_now_add=True)
-    validada_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='validaciones')
-    fecha_validacion = models.DateTimeField(null=True, blank=True)
-    notas_admin = models.TextField(blank=True)
-    
-    class Meta:
-        ordering = ['-fecha_siembra']
-        verbose_name = 'Siembra'
-        verbose_name_plural = 'Siembras'
-    
-    def __str__(self):
-        return f"Siembra de {self.usuario.username} - {self.fecha_siembra.strftime('%d/%m/%Y')}"
-    
-    def save(self, *args, **kwargs):
-        """Optimizar imagen antes de guardar"""
-        super().save(*args, **kwargs)
-        
-        if self.foto:
-            try:
-                img = Image.open(self.foto.path)
-                
-                # Convertir RGBA a RGB si es necesario
-                if img.mode in ('RGBA', 'LA', 'P'):
-                    rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                    rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-                    img = rgb_img
-                
-                # Redimensionar si es muy grande
-                if img.height > 1200 or img.width > 1200:
-                    img.thumbnail((1200, 1200), Image.Resampling.LANCZOS)
-                    img.save(self.foto.path, quality=85, optimize=True)
-            except Exception as e:
-                # Si hay error al procesar la imagen, continuar sin optimizar
-                pass
-    
-    def validar(self, admin_user):
-            """Valida la siembra y otorga puntos al usuario"""
-            from django.utils import timezone
-        
-            print(f"🔍 DEBUG - Validando siembra de: {self.usuario.username}")
-            print(f"🔍 DEBUG - ¿Es staff? {self.usuario.is_staff}")
-            print(f"🔍 DEBUG - ¿Es superuser? {self.usuario.is_superuser}")
-        
-            self.estado = 'validada'
-            self.validada_por = admin_user
-            self.fecha_validacion = timezone.now()
-            self.save()
-        
-            # NO otorgar puntos si el usuario es staff o superuser
-            if self.usuario.is_staff or self.usuario.is_superuser:
-                print(f"❌ DEBUG - NO se otorgan puntos porque el usuario es admin/staff")
-                return False
-        
-            # Otorgar puntos solo a usuarios normales
-            print(f"✅ DEBUG - Usuario normal, otorgando {self.puntos_otorgados} puntos")
-        
-            perfil = self.usuario.perfil
-            puntos_antes = perfil.puntos
-            nivel_antes = perfil.nivel
-        
-            print(f"📊 DEBUG - Antes: {puntos_antes} puntos, Nivel {nivel_antes}")
-        
-            subio_nivel = perfil.sumar_puntos(self.puntos_otorgados)
-        
-            print(f"📊 DEBUG - Después: {perfil.puntos} puntos, Nivel {perfil.nivel}")
-            print(f"🎉 DEBUG - ¿Subió de nivel? {subio_nivel}")
-        
-            return subio_nivel
 
 
 # Señal para crear perfil automáticamente

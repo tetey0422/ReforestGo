@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+
+{% block title %}Verificar Árbol - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 20px 20px 0 0;
+        text-align: center;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .siembra-info {
+        background: white;
+        padding: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        margin-bottom: 2rem;
+    }
+    
+    .siembra-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border-radius: 15px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        background: #f5f5f5;
+        padding: 1rem;
+        border-radius: 10px;
+    }
+    
+    .info-item strong {
+        display: block;
+        color: #4CAF50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    
+    .gps-status {
+        background: #f0f0f0;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .gps-status.success {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .gps-status.error {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .gps-status.loading {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0,0,0,0.1);
+        border-top-color: #4CAF50;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    input[type="file"],
+    textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+    
+    input:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .photo-preview {
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .photo-preview img {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .submit-btn:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border-left: 4px solid;
+    }
+    
+    .alert-info {
+        background: #e3f2fd;
+        border-color: #2196F3;
+        color: #1565c0;
+    }
+    
+    .puntos-info {
+        background: #e8f5e9;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #4CAF50;
+    }
+    
+    .puntos-info h4 {
+        color: #2e7d32;
+        margin-bottom: 0.8rem;
+    }
+    
+    .puntos-info ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .puntos-info li {
+        padding: 0.5rem 0;
+        color: #1b5e20;
+    }
+    
+    .puntos-info li::before {
+        content: "💰 ";
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>🔍 Verificar Árbol</h1>
+        <p>Confirma que este árbol existe y está en el lugar indicado</p>
+    </div>
+    
+    <div class="siembra-info">
+        <img src="{{ siembra.foto.url }}" alt="Árbol a verificar" class="siembra-image">
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>🌿 Especie</strong>
+                {{ siembra.especie|default:"No especificada" }}
+            </div>
+            <div class="info-item">
+                <strong>👤 Plantado por</strong>
+                {{ siembra.usuario.username }}
+            </div>
+            <div class="info-item">
+                <strong>📅 Fecha</strong>
+                {{ siembra.fecha_siembra|date:"d/m/Y" }}
+            </div>
+            <div class="info-item">
+                <strong>📍 Ubicación</strong>
+                {{ siembra.latitud|floatformat:4 }}, {{ siembra.longitud|floatformat:4 }}
+            </div>
+        </div>
+        
+        {% if siembra.descripcion %}
+        <div class="alert alert-info">
+            <strong>📝 Descripción del plantador:</strong><br>
+            {{ siembra.descripcion }}
+        </div>
+        {% endif %}
+        
+        <div style="text-align: center;">
+            <a href="https://www.google.com/maps?q={{ siembra.latitud }},{{ siembra.longitud }}" 
+               target="_blank" 
+               style="display: inline-block; padding: 0.8rem 1.5rem; background: #2196F3; color: white; text-decoration: none; border-radius: 10px; font-weight: 600;">
+                📍 Abrir en Google Maps
+            </a>
+        </div>
+    </div>
+    
+    <div class="form-container">
+        <div class="puntos-info">
+            <h4>💰 Sistema de Puntos</h4>
+            <ul>
+                <li><strong>Puntos base:</strong> 50 pts por verificación aprobada</li>
+                <li><strong>Bonus precisión:</strong> +30 pts si estás a menos de 20 metros</li>
+                <li><strong>Bonus foto extra:</strong> +20 pts por foto adicional de ubicación</li>
+                <li><strong>Total posible:</strong> Hasta 100 pts por verificación</li>
+            </ul>
+        </div>
+        
+        <div id="gps-status" class="gps-status loading">
+            <div class="spinner"></div>
+            <span id="gps-message">Obteniendo tu ubicación GPS...</span>
+        </div>
+        
+        <form id="verificacion-form" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <input type="hidden" id="latitud" name="latitud" value="">
+            <input type="hidden" id="longitud" name="longitud" value="">
+            
+            <div class="form-group">
+                <label for="foto_verificacion">📸 Foto del árbol (requerida) *</label>
+                <input type="file" id="foto_verificacion" name="foto_verificacion" accept="image/*" capture="environment" required>
+                <div class="photo-preview" id="photo-preview-1">
+                    <img id="preview-img-1" src="" alt="Vista previa">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="foto_ubicacion">📸 Foto adicional de ubicación (opcional)</label>
+                <small style="color: #666; display: block; margin-bottom: 0.5rem;">
+                    Bonus +20 pts: Toma una foto que muestre el contexto del árbol (calle, edificios cercanos, etc.)
+                </small>
+                <input type="file" id="foto_ubicacion" name="foto_ubicacion" accept="image/*" capture="environment">
+                <div class="photo-preview" id="photo-preview-2">
+                    <img id="preview-img-2" src="" alt="Vista previa">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notas">📝 Notas de verificación</label>
+                <textarea id="notas" name="notas" placeholder="Describe el estado del árbol, cualquier observación importante, etc."></textarea>
+            </div>
+            
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                🔍 Enviar Verificación
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let gpsObtenido = false;
+    
+    // Obtener ubicación GPS
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                document.getElementById('latitud').value = lat;
+                document.getElementById('longitud').value = lng;
+                
+                const gpsStatus = document.getElementById('gps-status');
+                const gpsMessage = document.getElementById('gps-message');
+                const submitBtn = document.getElementById('submit-btn');
+                
+                // Calcular distancia aproximada al árbol original
+                // Usar parseFloat sobre una representación formateada para evitar errores si el valor es nulo
+                const siembraLat = parseFloat('{{ siembra.latitud|default_if_none:"0"|floatformat:6 }}');
+                const siembraLng = parseFloat('{{ siembra.longitud|default_if_none:"0"|floatformat:6 }}');
+                
+                const R = 6371000; // Radio de la Tierra en metros
+                const rad = Math.PI / 180;
+                const dLat = (lat - siembraLat) * rad;
+                const dLon = (lng - siembraLng) * rad;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(siembraLat * rad) * Math.cos(lat * rad) *
+                        Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const distance = R * c;
+                
+                gpsStatus.className = 'gps-status success';
+                gpsMessage.innerHTML = `✅ Ubicación obtenida: ${lat.toFixed(6)}, ${lng.toFixed(6)}<br>` +
+                                      `📏 Distancia al árbol: <strong>${distance.toFixed(0)} metros</strong>` +
+                                      (distance < 20 ? ' 🎉 ¡Bonus de precisión!' : '');
+                
+                submitBtn.disabled = false;
+                gpsObtenido = true;
+            },
+            (error) => {
+                const gpsStatus = document.getElementById('gps-status');
+                const gpsMessage = document.getElementById('gps-message');
+                
+                gpsStatus.className = 'gps-status error';
+                
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        gpsMessage.textContent = '❌ Debes permitir el acceso a tu ubicación para verificar.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        gpsMessage.textContent = '❌ No se pudo determinar tu ubicación.';
+                        break;
+                    case error.TIMEOUT:
+                        gpsMessage.textContent = '❌ Tiempo de espera agotado al obtener ubicación.';
+                        break;
+                    default:
+                        gpsMessage.textContent = '❌ Error desconocido al obtener ubicación.';
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        const gpsStatus = document.getElementById('gps-status');
+        const gpsMessage = document.getElementById('gps-message');
+        
+        gpsStatus.className = 'gps-status error';
+        gpsMessage.textContent = '❌ Tu navegador no soporta geolocalización.';
+    }
+    
+    // Vista previa de fotos (con comprobación de elementos para evitar errores si el template cambia)
+    const fotoVerificacionEl = document.getElementById('foto_verificacion');
+    if (fotoVerificacionEl) {
+        fotoVerificacionEl.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photo-preview-1');
+                    const previewImg = document.getElementById('preview-img-1');
+                    if (previewImg) previewImg.src = e.target.result;
+                    if (preview) preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    const fotoUbicacionEl = document.getElementById('foto_ubicacion');
+    if (fotoUbicacionEl) {
+        fotoUbicacionEl.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photo-preview-2');
+                    const previewImg = document.getElementById('preview-img-2');
+                    if (previewImg) previewImg.src = e.target.result;
+                    if (preview) preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Validación antes de enviar (con comprobaciones de existencia de elementos)
+    const verificacionFormEl = document.getElementById('verificacion-form');
+    if (verificacionFormEl) {
+        verificacionFormEl.addEventListener('submit', function(e) {
+            if (!gpsObtenido) {
+                e.preventDefault();
+                alert('⚠️ Debes permitir el acceso a tu ubicación para verificar el árbol.');
+                return false;
+            }
+
+            const fotoInput = document.getElementById('foto_verificacion');
+            const foto = fotoInput && fotoInput.files ? fotoInput.files[0] : null;
+            if (!foto) {
+                e.preventDefault();
+                alert('⚠️ Debes subir al menos una foto del árbol.');
+                return false;
+            }
+
+            // Deshabilitar botón
+            const submitBtnEl = document.getElementById('submit-btn');
+            if (submitBtnEl) {
+                submitBtnEl.disabled = true;
+                submitBtnEl.textContent = '⏳ Enviando verificación...';
+            }
+        });
+    }
+</script>
+{% endblock %}

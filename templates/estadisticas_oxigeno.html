@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Impacto Ambiental - Reforest Go{% endblock %}
+
+{% block extra_style %}
+<style>
+    .impact-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(76, 175, 80, 0.3);
+    }
+    
+    .impact-header h1 {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .impact-header p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+    
+    .main-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+    
+    .stat-card-large {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #4CAF50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #666;
+        font-size: 1.1rem;
+    }
+    
+    .equivalencias-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .equivalencias-section h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+    
+    .equivalencias-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .equivalencia-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .equivalencia-icon {
+        font-size: 3rem;
+    }
+    
+    .equivalencia-content {
+        flex: 1;
+    }
+    
+    .equivalencia-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.3rem;
+    }
+    
+    .equivalencia-text {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .especies-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .especies-section h2 {
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+    
+    .especies-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .especies-table th {
+        background: #f5f5f5;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    .especies-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .especies-table tr:hover {
+        background: #f8f8f8;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 25px;
+        background: #e0e0e0;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        transition: width 1s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+    
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .cta-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-section p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-cta {
+        display: inline-block;
+        padding: 1rem 2rem;
+        background: white;
+        color: #667eea;
+        text-decoration: none;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+    }
+    
+    .btn-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    @media (max-width: 768px) {
+        .impact-header h1 {
+            font-size: 2rem;
+        }
+        
+        .main-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="impact-header">
+    <h1>🌍 Tu Impacto Ambiental</h1>
+    <p>El cambio que has generado en el planeta</p>
+</div>
+
+<div class="main-stats">
+    <div class="stat-card-large">
+        <div class="stat-icon">💨</div>
+        <div class="stat-value">{{ oxigeno_total }}</div>
+        <div class="stat-label">kg de Oxígeno/año</div>
+    </div>
+    
+    <div class="stat-card-large">
+        <div class="stat-icon">🌿</div>
+        <div class="stat-value">{{ co2_total }}</div>
+        <div class="stat-label">kg de CO₂ absorbido/año</div>
+    </div>
+    
+    <div class="stat-card-large">
+        <div class="stat-icon">🌳</div>
+        <div class="stat-value">{{ siembras_count }}</div>
+        <div class="stat-label">Árboles Plantados</div>
+    </div>
+</div>
+
+<div class="equivalencias-section">
+    <h2>📊 Equivalencias Comprensibles</h2>
+    <p style="color: #666; margin-bottom: 1.5rem;">
+        Tu impacto en términos que todos podemos entender
+    </p>
+    
+    <div class="equivalencias-grid">
+        <div class="equivalencia-card">
+            <div class="equivalencia-icon">🚗</div>
+            <div class="equivalencia-content">
+                <div class="equivalencia-value">{{ equivalencias.autos_año }}</div>
+                <div class="equivalencia-text">Autos fuera de circulación por 1 año</div>
+            </div>
+        </div>
+        
+        <div class="equivalencia-card">
+            <div class="equivalencia-icon">📱</div>
+            <div class="equivalencia-content">
+                <div class="equivalencia-value">{{ equivalencias.telefonos_cargados }}</div>
+                <div class="equivalencia-text">Teléfonos celulares cargados</div>
+            </div>
+        </div>
+        
+        <div class="equivalencia-card">
+            <div class="equivalencia-icon">👥</div>
+            <div class="equivalencia-content">
+                <div class="equivalencia-value">{{ equivalencias.personas_oxigeno }}</div>
+                <div class="equivalencia-text">Días de oxígeno para 1 persona</div>
+            </div>
+        </div>
+        
+        <div class="equivalencia-card">
+            <div class="equivalencia-icon">🌲</div>
+            <div class="equivalencia-content">
+                <div class="equivalencia-value">{{ equivalencias.arboles_equivalentes }}</div>
+                <div class="equivalencia-text">Árboles maduros equivalentes</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if por_especie %}
+<div class="especies-section">
+    <h2>🌿 Impacto por Especie</h2>
+    <p style="color: #666; margin-bottom: 1.5rem;">
+        Contribución de cada tipo de árbol a tu impacto total
+    </p>
+    
+    <table class="especies-table">
+        <thead>
+            <tr>
+                <th>Especie</th>
+                <th>Cantidad</th>
+                <th>Oxígeno (kg/año)</th>
+                <th>Contribución</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in por_especie %}
+            <tr>
+                <td><strong>{{ item.especie|default:"Sin especificar" }}</strong></td>
+                <td>{{ item.cantidad }} árbol{{ item.cantidad|pluralize:"es" }}</td>
+                <td>{{ item.total_oxigeno|floatformat:2 }} kg/año</td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress-fill" data-pct="{% widthratio item.total_oxigeno oxigeno_total 100 %}">
+                            {% widthratio item.total_oxigeno oxigeno_total 100 %}%
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if siembras_count == 0 %}
+<div class="cta-section">
+    <h2>🌱 ¡Comienza Tu Impacto Hoy!</h2>
+    <p>Aún no has plantado árboles. ¡Es momento de comenzar tu legado ambiental!</p>
+    <a href="{% url 'reforest:registrar_siembra' %}" class="btn-cta">
+        📸 Plantar Mi Primer Árbol
+    </a>
+</div>
+{% elif siembras_count < 10 %}
+<div class="cta-section">
+    <h2>🎯 ¡Sigue Plantando!</h2>
+    <p>Llevas {{ siembras_count }} árbol{{ siembras_count|pluralize:"es" }} plantado{{ siembras_count|pluralize }}.
+       ¡Cada árbol cuenta para el planeta!</p>
+    <a href="{% url 'reforest:registrar_siembra' %}" class="btn-cta">
+        🌳 Plantar Más Árboles
+    </a>
+</div>
+{% else %}
+<div class="cta-section">
+    <h2>🏆 ¡Increíble Impacto!</h2>
+    <p>Has plantado {{ siembras_count }} árboles. ¡Eres un verdadero guardián del planeta!</p>
+    <a href="{% url 'reforest:ranking' %}" class="btn-cta">
+        📊 Ver Mi Posición en el Ranking
+    </a>
+</div>
+{% endif %}
+
+<div style="background: #e3f2fd; padding: 2rem; border-radius: 15px; margin-top: 2rem; border-left: 4px solid #2196F3;">
+    <h3 style="color: #1565c0; margin-bottom: 1rem;">💡 ¿Sabías que?</h3>
+    <ul style="list-style: none; padding: 0; color: #0d47a1;">
+        <li style="padding: 0.5rem 0;">🌳 Un árbol maduro puede producir oxígeno para 2 personas por año</li>
+        <li style="padding: 0.5rem 0;">💨 Los bosques urbanos pueden reducir la temperatura hasta 5°C</li>
+        <li style="padding: 0.5rem 0;">🌍 Los árboles absorben gases contaminantes y mejoran la calidad del aire</li>
+        <li style="padding: 0.5rem 0;">🦋 Un solo árbol puede ser hogar para miles de especies</li>
+        <li style="padding: 0.5rem 0;">💧 Los árboles ayudan a prevenir la erosión del suelo y filtran el agua</li>
+    </ul>
+</div>
+</div>
+
+<script>
+    // Aplicar ancho de barra de progreso desde data-pct para evitar cálculos en inline-style
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.progress-fill').forEach(function(el) {
+            var pct = el.getAttribute('data-pct');
+            if (pct !== null) {
+                // asegurar valor numérico
+                var n = parseInt(pct, 10);
+                if (!isNaN(n)) {
+                    el.style.width = n + '%';
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}
