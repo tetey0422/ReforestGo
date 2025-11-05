@@ -90,7 +90,8 @@ def perfil(request):
             request.session[f'mensaje_verificador_mostrado_{request.user.id}'] = True
     
     # Estadísticas del usuario
-    total_siembras = request.user.siembras.filter(estado='validada').count()
+    siembras_validadas_count = request.user.siembras.filter(estado='validada').count()
+    total_siembras = request.user.siembras.count()
     siembras_pendientes = request.user.siembras.filter(estado='pendiente').count()
     
     # Últimas 6 siembras
@@ -117,20 +118,21 @@ def perfil(request):
         faltan = 0
     
     # Cálculo de impacto ambiental personal
-    siembras_validadas = request.user.siembras.filter(estado='validada')
-    oxigeno_personal = siembras_validadas.aggregate(total=Sum('oxigeno_generado'))['total'] or 0
-    co2_personal = siembras_validadas.aggregate(total=Sum('co2_absorbido'))['total'] or 0
+    siembras_validadas_qs = request.user.siembras.filter(estado='validada')
+    oxigeno_personal = siembras_validadas_qs.aggregate(total=Sum('oxigeno_generado'))['total'] or 0
+    co2_personal = siembras_validadas_qs.aggregate(total=Sum('co2_absorbido'))['total'] or 0
     
     context = {
         'perfil': perfil,
         'total_siembras': total_siembras,
+        'siembras_validadas': siembras_validadas_count,
         'siembras_pendientes': siembras_pendientes,
         'siembras': siembras,
         'avatares_disponibles': avatares_disponibles,
         'progreso': progreso,
         'faltan': faltan,
-        'oxigeno_personal': round(float(oxigeno_personal), 2),
-        'co2_personal': round(float(co2_personal), 2),
+        'oxigeno_total': round(float(oxigeno_personal), 2),
+        'co2_capturado': round(float(co2_personal), 2),
     }
     return render(request, 'perfil.html', context)
 

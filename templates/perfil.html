@@ -202,6 +202,20 @@
         transform: translateY(-2px);
     }
 
+    .panel-btn {
+        display: inline-block;
+        padding: 0.8rem 1.5rem;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .panel-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
     @media (max-width: 768px) {
         .profile-header {
             grid-template-columns: 1fr;
@@ -257,11 +271,6 @@
             </div>
         </div>
     </div>
-
-    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <a href="{% url 'reforest:mis_siembras' %}" class="btn">🌳 Ver Todas mis Siembras</a>
-        <a href="{% url 'reforest:estadisticas_oxigeno' %}" class="btn" style="background: linear-gradient(135deg, #29B6F6 0%, #0288D1 100%);">💨 Ver Mi Impacto</a>
-    </div>
 </div>
 
 {% if perfil.nivel < 5 %} <div class="progress-section">
@@ -277,12 +286,143 @@
     </div>
     {% endif %}
 
-    <!-- Después de la sección de impacto ambiental personal -->
-    <p style="color: #4CAF50; font-weight: 600; margin-top: 0.5rem;">
-        <a href="{% url 'reforest:estadisticas_oxigeno' %}" style="text-decoration: none; color: inherit;">
-            💨 Ver estadísticas detalladas de oxígeno →
-        </a>
-    </p>
+    <!-- Panel de Estadísticas de Oxígeno -->
+    <div style="background: linear-gradient(135deg, #29B6F6 0%, #0288D1 100%); 
+                color: white; 
+                padding: 2rem; 
+                border-radius: 20px; 
+                margin-top: 2rem;
+                box-shadow: 0 10px 40px rgba(41, 182, 246, 0.3);">
+        <h3 style="margin-bottom: 1rem; font-size: 1.8rem;">💨 Mi Impacto Ambiental</h3>
+        <p style="margin-bottom: 1.5rem; opacity: 0.95; font-size: 1.1rem;">
+            Descubre el oxígeno que has generado y tu contribución al planeta
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+            <a href="{% url 'reforest:estadisticas_oxigeno' %}" 
+               style="display: inline-block; 
+                      padding: 0.8rem 1.5rem; 
+                      background: white; 
+                      color: #0288D1; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      font-weight: 600;
+                      transition: transform 0.2s;">
+                📊 Ver Estadísticas Detalladas
+            </a>
+        </div>
+        
+        <!-- Estadísticas de impacto -->
+        <div style="display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                    gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ total_siembras }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Árboles Plantados</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ siembras_validadas|default:0 }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Validados</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ oxigeno_total|default:"0"|floatformat:1 }} kg</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Oxígeno Producido</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ co2_capturado|default:"0"|floatformat:1 }} kg</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">CO₂ Capturado</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Mis Siembras -->
+    <div style="background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%); 
+                color: white; 
+                padding: 2rem; 
+                border-radius: 20px; 
+                margin-top: 2rem;
+                box-shadow: 0 10px 40px rgba(102, 187, 106, 0.3);">
+        <h3 style="margin-bottom: 1rem; font-size: 1.8rem;">🌳 Mis Siembras</h3>
+        <p style="margin-bottom: 1.5rem; opacity: 0.95; font-size: 1.1rem;">
+            Gestiona todos tus árboles plantados y su estado de verificación
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+            <a href="{% url 'reforest:mis_siembras' %}" 
+               style="display: inline-block; 
+                      padding: 0.8rem 1.5rem; 
+                      background: white; 
+                      color: #43A047; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      font-weight: 600;
+                      transition: transform 0.2s;">
+                🌲 Ver Todas Mis Siembras
+            </a>
+            <a href="{% url 'reforest:registrar_siembra' %}" 
+               style="display: inline-block; 
+                      padding: 0.8rem 1.5rem; 
+                      background: rgba(255,255,255,0.2); 
+                      color: white; 
+                      text-decoration: none; 
+                      border-radius: 25px; 
+                      font-weight: 600;
+                      border: 2px solid white;
+                      transition: transform 0.2s;">
+                📸 Registrar Nueva Siembra
+            </a>
+        </div>
+        
+        <!-- Estadísticas de siembras -->
+        <div style="display: grid; 
+                    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+                    gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">{{ total_siembras }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Total</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold; color: #C8E6C9;">{{ siembras_validadas|default:0 }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Validadas</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold; color: #FFF59D;">{{ siembras_pendientes }}</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Pendientes</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.2); 
+                        padding: 1rem; 
+                        border-radius: 10px; 
+                        text-align: center;">
+                <div style="font-size: 2rem; font-weight: bold;">
+                    {% if total_siembras > 0 %}
+                        {% widthratio siembras_validadas total_siembras 100 %}
+                    {% else %}
+                        0
+                    {% endif %}%
+                </div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Tasa Validación</div>
+            </div>
+        </div>
+    </div>
 
     <!-- Panel de Verificador para usuarios nivel 3+ -->
     {% if perfil.nivel >= 3 or perfil.rol == 'verificador' or perfil.rol == 'admin' %}
