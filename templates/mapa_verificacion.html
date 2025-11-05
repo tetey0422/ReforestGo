@@ -144,8 +144,15 @@
 
 {% block content %}
 <div class="verificacion-header">
-    <h1>🔍 Verificación de Árboles</h1>
-    <p>Encuentra árboles cercanos que necesitan verificación y gana puntos</p>
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+        <div>
+            <h1>🔍 Verificación de Árboles</h1>
+            <p>Encuentra árboles cercanos que necesitan verificación y gana puntos</p>
+        </div>
+        <a href="{% url 'reforest:mis_verificaciones' %}" class="btn" style="background: linear-gradient(135deg, #29B6F6 0%, #0288D1 100%); padding: 0.8rem 1.5rem; text-decoration: none; color: white; border-radius: 25px; font-weight: 600; white-space: nowrap;">
+            📋 Mis Verificaciones
+        </a>
+    </div>
     
     <div class="stats-row">
         <div class="stat-box">
